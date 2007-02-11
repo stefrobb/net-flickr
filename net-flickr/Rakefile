@@ -53,6 +53,8 @@ spec = Gem::Specification.new do |s|
                     '--line-numbers'
   
   s.required_ruby_version = '>= 1.8.4'
+
+  s.add_dependency('hpricot', '>= 0.5')
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
