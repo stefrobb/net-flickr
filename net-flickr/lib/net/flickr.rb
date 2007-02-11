@@ -48,6 +48,7 @@ require 'flickr/list'
 require 'flickr/photo'
 require 'flickr/photolist'
 require 'flickr/photos'
+require 'flickr/tag'
 
 module Net
 
@@ -102,7 +103,7 @@ module Net
       @api_key    = api_key
       @api_secret = api_secret
       
-      # Initialize subclasses.
+      # Initialize dependent classes.
       @auth   = Auth.new(self)
       @photos = Photos.new(self)
     end

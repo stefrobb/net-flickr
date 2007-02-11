@@ -29,6 +29,9 @@
 module Net; class Flickr
 
   # Base class for paginated lists.
+  # 
+  # Don't instantiate this class yourself. It's a base class extended by
+  # +PhotoList+ and others.
   class List
     include Enumerable
     

@@ -31,6 +31,18 @@ module Net; class Flickr
   # Implements the Flickr authentication API. Please see
   # http://flickr.com/services/api/auth.spec.html for details on how to use this
   # API in your application.
+  # 
+  # Don't instantiate this class yourself. Instead, create an instance of the
+  # +Flickr+ class and then user <tt>Flickr.auth</tt> to access this class,
+  # like so:
+  # 
+  #   require 'net/flickr'
+  #   
+  #   flickr = Net::Flickr.new('524266cbd9d3c2xa2679fee8b337fip2',
+  #       '835hae5d6j0sd47a')
+  #   
+  #   puts flickr.auth.url_desktop
+  # 
   class Auth
     PERM_NONE   = :none
     PERM_READ   = :read
