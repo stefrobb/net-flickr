@@ -45,6 +45,8 @@ require 'hpricot'
 require 'flickr/auth'
 require 'flickr/errors'
 require 'flickr/list'
+require 'flickr/people'
+require 'flickr/person'
 require 'flickr/photo'
 require 'flickr/photolist'
 require 'flickr/photos'
@@ -72,7 +74,6 @@ module Net
   # * groups
   # * groups.pools
   # * interestingness
-  # * people
   # * photos.comments
   # * photos.geo
   # * photos.licenses
@@ -91,7 +92,7 @@ module Net
     REST_ENDPOINT = 'http://api.flickr.com/services/rest/'
     VERSION       = '0.1.0'
 
-    attr_reader :api_key, :api_secret, :auth, :photos
+    attr_reader :api_key, :api_secret, :auth, :people, :photos
     
     # Creates a new Net::Flickr object that will use the specified _api_key_ and
     # _api_secret_ to connect to Flickr. If you don't already have a Flickr API
@@ -105,6 +106,7 @@ module Net
       
       # Initialize dependent classes.
       @auth   = Auth.new(self)
+      @people = People.new(self)
       @photos = Photos.new(self)
     end
     

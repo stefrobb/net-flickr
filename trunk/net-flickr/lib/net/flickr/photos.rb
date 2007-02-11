@@ -176,6 +176,15 @@ module Net; class Flickr
       return PhotoList.new(@flickr, 'flickr.photos.getUntagged', args)
     end
     
+    # Gets a list of public photos for the specified _user_id_.
+    # 
+    # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
+    # details.
+    def user(user_id, args = {})
+      args['user_id'] = user_id
+      return PhotoList.new(@flickr, 'flickr.people.getPublicPhotos', args)
+    end
+    
   end
 
 end; end
