@@ -31,9 +31,9 @@ module Net; class Flickr
   # Provides methods for retrieving and/or manipulating one or more Flickr
   # photos.
   # 
-  # Do not instantiate this class yourself. Instead, create an instance of the
-  # Flickr class and then use <tt>Flickr.photos</tt> to access this class, like
-  # so:
+  # Don't instantiate this class yourself. Instead, create an instance of the
+  # +Flickr+ class and then use <tt>Flickr.photos</tt> to access this class,
+  # like so:
   # 
   #   require 'net/flickr'
   #   

@@ -28,7 +28,10 @@
 
 module Net; class Flickr
 
-  # Represents a paginated list of Flickr photos. 
+  # Paginated list of Flickr photos.
+  # 
+  # Don't instantiate this class yourself. An instance will be returned when
+  # necessary by methods such as <tt>Flickr.photos.recent</tt>.
   class PhotoList < List
 
     #--

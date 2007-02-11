@@ -28,6 +28,10 @@
 
 module Net; class Flickr
 
+  # A Flickr photo.
+  # 
+  # Don't instantiate this class yourself. Use the methods in
+  # Flickr::Photos to retrieve photos from Flickr.
   class Photo
     SIZE_SUFFIX = {
       :square   => 's',
@@ -56,34 +60,25 @@ module Net; class Flickr
       @is_public = xml['ispublic'] == '1'
       @is_friend = xml['isfriend'] == '1'
       @is_family = xml['isfamily'] == '1'
+      
+      # Detailed photo info.
+      @infoxml = nil
     end
     
     #--
     # Public Instance Methods
     #++
     
-    # flickr.photos.getInfo
-    def date_posted
-    end
-    
-    # flickr.photos.setDates
-    def date_posted=(time)
-    end
-    
-    # flickr.photos.getInfo
-    def date_taken
-    end
-    
-    # flickr.photos.setDates
-    def date_taken=(time)
-    end
-    
-    # flickr.photos.delete
+    # Deletes this photo from Flickr. This method requires authentication with
+    # +delete+ permission.
     def delete
+      @flickr.photos.delete(@id)
     end
     
-    # flickr.photos.getInfo
+    # Gets this photo's description.
     def description
+      infoxml = get_info
+      return infoxml.at('description').inner_text
     end
     
     # flickr.photos.setMeta
@@ -112,6 +107,12 @@ module Net; class Flickr
     def gps
     end
     
+    # Gets the time this photo was last modified.
+    def modified
+      infoxml = get_info
+      return Time.at(infoxml.at('dates')['lastupdate'].to_i)
+    end
+    
     # flickr.photos.getContext
     def next
     end
@@ -123,6 +124,16 @@ module Net; class Flickr
     
     # flickr.photos.getAllContexts
     def pools
+    end
+    
+    # Gets the time this photo was posted to Flickr.
+    def posted
+      infoxml = get_info
+      return Time.at(infoxml.at('dates')['posted'].to_i)
+    end
+    
+    # flickr.photos.setDates
+    def posted=(time)
     end
     
     # flickr.photos.getContext
@@ -175,6 +186,16 @@ module Net; class Flickr
     def tags
     end
     
+    # Gets the time this photo was taken.
+    def taken
+      infoxml = get_info
+      return Time.parse(infoxml.at('dates')['taken'])
+    end
+    
+    # flickr.photos.setDates
+    def taken=(time)
+    end
+    
     # flickr.photos.getExif
     def tiff
     end
@@ -191,8 +212,12 @@ module Net; class Flickr
     
     # Gets detailed information for this photo.
     def get_info
+      return @infoxml unless @infoxml.nil?
+
       response = @flickr.request('flickr.photos.getInfo', 'photo_id' => @id, 
           'secret' => @secret)
+      
+      return @infoxml = response.at('photo')
     end
   
   end
