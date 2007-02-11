@@ -81,8 +81,11 @@ module Net; class Flickr
       return infoxml.at('description').inner_text
     end
     
-    # flickr.photos.setMeta
-    def description=
+    # Sets this photo's description. This method requires authentication with
+    # +write+ permission.
+    def description=(value)
+      set_meta(@title, value)
+      return value
     end
     
     # flickr.photos.getExif
@@ -200,8 +203,11 @@ module Net; class Flickr
     def tiff
     end
     
-    # flickr.photos.setMeta
-    def title=
+    # Sets this photo's title. This method requires authentication with +write+
+    # permission.
+    def title=(value)
+      set_meta(value, description)
+      return true
     end
     
     #--
@@ -218,6 +224,21 @@ module Net; class Flickr
           'secret' => @secret)
       
       return @infoxml = response.at('photo')
+    end
+    
+    # Sets date information for this photo.
+    def set_dates(posted, taken, granularity = 0, args = {})
+    end
+    
+    # Sets meta information for this photo.
+    def set_meta(title, description, args = {})
+      args['photo_id']    = @id
+      args['title']       = title
+      args['description'] = description
+      
+      @flickr.request('flickr.photos.setMeta', args)
+      
+      @infoxml = nil
     end
   
   end
