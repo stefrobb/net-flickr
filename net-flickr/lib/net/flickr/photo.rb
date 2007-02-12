@@ -30,8 +30,8 @@ module Net; class Flickr
 
   # A Flickr photo.
   # 
-  # Don't instantiate this class yourself. Use the methods in
-  # Flickr::Photos to retrieve photos from Flickr.
+  # Don't instantiate this class yourself. Use the methods in Flickr::Photos to
+  # retrieve photos from Flickr.
   class Photo
     SIZE_SUFFIX = {
       :square   => 's',
@@ -42,32 +42,21 @@ module Net; class Flickr
       :original => 'o'
     }
   
-    attr_reader :id, :owner, :secret, :server, :farm, :title
-    
-    def initialize(flickr, xml)
-      @flickr = flickr
-      
-      unless xml.is_a?(Hpricot::Elem)
-        raise ArgumentError, "Invalid argument: xml"
-      end
-      
-      @id        = xml['id']
-      @owner     = xml['owner']
-      @secret    = xml['secret']
-      @server    = xml['server']
-      @farm      = xml['farm']
-      @title     = xml['title']
-      @is_public = xml['ispublic'] == '1'
-      @is_friend = xml['isfriend'] == '1'
-      @is_family = xml['isfamily'] == '1'
-      
-      # Detailed photo info.
-      @infoxml = nil
-    end
-    
     #--
     # Public Instance Methods
     #++
+    
+    attr_reader :id, :secret, :server, :farm
+    
+    def initialize(flickr, photo_xml)
+      @flickr = flickr
+      
+      parse_xml(photo_xml)
+      
+      # Detailed photo info.
+      @context_xml = nil
+      @info_xml    = nil
+    end
     
     # Deletes this photo from Flickr. This method requires authentication with
     # +delete+ permission.
@@ -77,8 +66,8 @@ module Net; class Flickr
     
     # Gets this photo's description.
     def description
-      infoxml = get_info
-      return infoxml.at('description').inner_text
+      info_xml = get_info
+      return info_xml.at('description').inner_text
     end
     
     # Sets this photo's description. This method requires authentication with
@@ -94,6 +83,7 @@ module Net; class Flickr
     
     # Whether or not this photo is visible to family.
     def family?
+      get_info if @is_family.nil?
       return @is_family || @is_public
     end
 
@@ -103,6 +93,7 @@ module Net; class Flickr
     
     # Whether or not this photo is visible to friends.
     def friend?
+      get_info if @is_friend.nil?
       return @is_friend || @is_public
     end
     
@@ -112,12 +103,21 @@ module Net; class Flickr
     
     # Gets the time this photo was last modified.
     def modified
-      infoxml = get_info
-      return Time.at(infoxml.at('dates')['lastupdate'].to_i)
+      info_xml = get_info
+      return Time.at(info_xml.at('dates')['lastupdate'].to_i)
     end
     
-    # flickr.photos.getContext
+    # Gets the next photo in the owner's photo stream, or +nil+ if this is the
+    # last photo in the stream.
     def next
+      context_xml = get_context
+      next_xml = context_xml.at('nextphoto')
+      
+      return Photo.new(@flickr, next_xml) if next_xml['id'] != '0'
+      return nil
+    end
+    
+    def owner
     end
     
     # Gets the URL of this photo's Flickr photo page.
@@ -131,22 +131,29 @@ module Net; class Flickr
     
     # Gets the time this photo was posted to Flickr.
     def posted
-      infoxml = get_info
-      return Time.at(infoxml.at('dates')['posted'].to_i)
+      info_xml = get_info
+      return Time.at(info_xml.at('dates')['posted'].to_i)
     end
     
     # flickr.photos.setDates
     def posted=(time)
     end
     
-    # flickr.photos.getContext
+    # Gets the previous photo in the owner's photo stream, or +nil+ if this is
+    # the first photo in the stream.
     def previous
+      context_xml = get_context
+      prev_xml = context_xml.at('prevphoto')
+      
+      return Photo.new(@flickr, prev_xml) if prev_xml['id'] != '0'
+      return nil
     end
 
     alias prev previous
     
     # Whether or not this photo is visible to the general public.
     def public?
+      get_info if @is_public.nil?
       return @is_public
     end
     
@@ -159,7 +166,7 @@ module Net; class Flickr
     end
     
     # Gets the source URL for this photo at one of the following specified
-    # sizes.
+    # sizes. Returns +nil+ if the specified _size_ is not available.
     # 
     # [:square]   75x75px
     # [:thumb]    100px on longest side
@@ -172,17 +179,20 @@ module Net; class Flickr
       
       case size
         when :medium
-          url = "http://farm#{@farm}.static.flickr.com/#{@server}/#{@id}_#{@secret}.jpg"
+          return "http://farm#{@farm}.static.flickr.com/#{@server}/#{@id}_#{@secret}.jpg"
         
         when :original
-          # TODO: Support original source URLs
-          url = 'not yet supported'
-        
+          info_xml = get_info
+          
+          original_secret = info_xml['originalsecret']
+          original_format = info_xml['originalformat']
+          
+          return nil if original_secret.nil? || original_format.nil? 
+          return "http://farm#{@farm}.static.flickr.com/#{@server}/#{@id}_#{original_secret}_o.#{original_format}"
+
         else
-          url = "http://farm#{@farm}.static.flickr.com/#{@server}/#{@id}_#{@secret}_#{suffix}.jpg"
+          return "http://farm#{@farm}.static.flickr.com/#{@server}/#{@id}_#{@secret}_#{suffix}.jpg"
       end
-      
-      return url
     end
     
     # flickr.photos.getInfo
@@ -191,8 +201,8 @@ module Net; class Flickr
     
     # Gets the time this photo was taken.
     def taken
-      infoxml = get_info
-      return Time.parse(infoxml.at('dates')['taken'])
+      info_xml = get_info
+      return Time.parse(info_xml.at('dates')['taken'])
     end
     
     # flickr.photos.setDates
@@ -201,6 +211,11 @@ module Net; class Flickr
     
     # flickr.photos.getExif
     def tiff
+    end
+    
+    # Gets this photo's title.
+    def title
+      return @title
     end
     
     # Sets this photo's title. This method requires authentication with +write+
@@ -216,14 +231,74 @@ module Net; class Flickr
     
     private
     
+    # Gets context information for this photo.
+    def get_context
+      return @context_xml unless @context_xml.nil?
+      return @context_xml = @flickr.request('flickr.photos.getContext',
+          'photo_id' => @id)
+    end
+    
     # Gets detailed information for this photo.
     def get_info
-      return @infoxml unless @infoxml.nil?
+      return @info_xml unless @info_xml.nil?
 
       response = @flickr.request('flickr.photos.getInfo', 'photo_id' => @id, 
           'secret' => @secret)
       
-      return @infoxml = response.at('photo')
+      @info_xml = response.at('photo')
+
+      if @is_family.nil? || @is_friend.nil? || @is_public.nil?
+        @is_family = @info_xml.at('visibility')['isfamily'] == '1'
+        @is_friend = @info_xml.at('visibility')['isfriend'] == '1'
+        @is_public = @info_xml.at('visibility')['ispublic'] == '1'
+      end
+      
+      return @info_xml
+    end
+    
+    # Parse a photo xml chunk.
+    def parse_xml(photo_xml)
+      # Convert photo_xml to an Hpricot::Elem if it isn't one already.
+      unless photo_xml.is_a?(Hpricot::Elem)
+        photo_xml = Hpricot::XML(photo_xml)
+      end
+      
+      # Figure out what format we're dealing with, since someone at Flickr
+      # thought it would be fun to be inconsistent (thanks, whoever you are).
+      if photo_xml['owner'] && photo_xml['ispublic']
+        # This is a basic XML chunk.
+        @id        = photo_xml['id']
+        @secret    = photo_xml['secret']
+        @server    = photo_xml['server']
+        @farm      = photo_xml['farm']
+        @title     = photo_xml['title']
+        @is_public = photo_xml['ispublic'] == '1'
+        @is_friend = photo_xml['isfriend'] == '1'
+        @is_family = photo_xml['isfamily'] == '1'
+      
+      elsif photo_xml['url'] && photo_xml['thumb']
+        # This is a context XML chunk. It doesn't include visibility info.
+        @id        = photo_xml['id']
+        @secret    = photo_xml['secret']
+        @server    = photo_xml['server']
+        @farm      = photo_xml['farm']
+        @title     = photo_xml['title']
+        @is_public = nil
+        @is_friend = nil
+        @is_family = nil  
+      
+      elsif photo_xml['originalsecret'] && photo_xml.at('owner[@nsid]')
+        # This is a detailed XML chunk (probably from flickr.photos.getInfo).
+        @id        = photo_xml['id']
+        @secret    = photo_xml['secret']
+        @server    = photo_xml['server']
+        @farm      = photo_xml['farm']
+        @title     = photo_xml.at('title').inner_text
+        @is_public = photo_xml.at('visibility')['ispublic'] == '1'
+        @is_friend = photo_xml.at('visibility')['isfriend'] == '1'
+        @is_family = photo_xml.at('visibility')['isfamily'] == '1'
+        @info_xml  = photo_xml
+      end
     end
     
     # Sets date information for this photo.
@@ -238,7 +313,7 @@ module Net; class Flickr
       
       @flickr.request('flickr.photos.setMeta', args)
       
-      @infoxml = nil
+      @info_xml = nil
     end
   
   end
