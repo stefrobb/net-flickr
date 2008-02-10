@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2007 Ryan Grove <ryan@wonko.com>
+# Copyright (c) 2007-2008 Ryan Grove <ryan@wonko.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getContactsPublicPhotos.html
     # for details.
     def contacts_public(user_id, args = {})
-      args['user_id'] = user_id
+      args[:user_id] = user_id
       
       response = @flickr.request('flickr.photos.getContactsPublicPhotos', args)
       
@@ -91,7 +91,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getCounts.html for
     # details.
     def counts(args = {})
-      return @flickr.request('flickr.photos.getCounts', args).at('photocounts').
+      @flickr.request('flickr.photos.getCounts', args).at('photocounts').
           to_original_html
     end
     
@@ -100,8 +100,7 @@ module Net; class Flickr
     # 
     # See http://flickr.com/services/api/flickr.photos.delete.html for details.
     def delete(photo_id)
-      @flickr.request('flickr.photos.delete', 'photo_id' => photo_id)
-      return true
+      @flickr.request('flickr.photos.delete', :photo_id => photo_id)
     end
     
     # Gets a list of the calling user's geotagged photos. This method requires
@@ -110,7 +109,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getWithGeoData.html for
     # details.
     def geotagged(args = {})
-      return PhotoList.new(@flickr, 'flickr.photos.getWithGeoData', args)
+      PhotoList.new(@flickr, 'flickr.photos.getWithGeoData', args)
     end
     
     # Gets a list of the calling user's photos that have not been geotagged.
@@ -119,7 +118,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getWithoutGeoData.html
     # for details.
     def not_geotagged(args = {})
-      return PhotoList.new(@flickr, 'flickr.photos.getWithoutGeoData', args)
+      PhotoList.new(@flickr, 'flickr.photos.getWithoutGeoData', args)
     end
 
     # Gets a list of the calling user's photos that are not included in any
@@ -128,7 +127,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getNotInSet.html for
     # details.
     def not_in_set(args = {})
-      return PhotoList.new(@flickr, 'flickr.photos.getNotInSet', args)
+      PhotoList.new(@flickr, 'flickr.photos.getNotInSet', args)
     end
     
     # Gets a list of the latest public photos uploaded to Flickr.
@@ -136,7 +135,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getRecent.html for
     # details.
     def recent(args = {})
-      return PhotoList.new(@flickr, 'flickr.photos.getRecent', args)
+      PhotoList.new(@flickr, 'flickr.photos.getRecent', args)
     end
     
     # Gets a list of the calling user's photos that have been created or
@@ -149,8 +148,8 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.recentlyUpdated.html for
     # details.
     def recently_updated(min_date, args = {})
-      args['min_date'] = min_date.to_i
-      return PhotoList.new(@flickr, 'flickr.photos.recentlyUpdated', args)
+      args[:min_date] = min_date.to_i
+      PhotoList.new(@flickr, 'flickr.photos.recentlyUpdated', args)
     end
     
     # Gets a list of photos matching the specified criteria. Only photos visible
@@ -164,7 +163,7 @@ module Net; class Flickr
     # Note: Flickr doesn't allow parameterless searches, so be sure to specify
     # at least one search parameter.
     def search(args = {})
-      return PhotoList.new(@flickr, 'flickr.photos.search', args)
+      PhotoList.new(@flickr, 'flickr.photos.search', args)
     end
     
     # Gets a list of the calling user's photos that have no tags. This method
@@ -173,7 +172,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getUntagged.html for
     # details.
     def untagged(args = {})
-      return PhotoList.new(@flickr, 'flickr.photos.getUntagged', args)
+      PhotoList.new(@flickr, 'flickr.photos.getUntagged', args)
     end
     
     # Gets a list of public photos for the specified _user_id_.
@@ -181,8 +180,8 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
     # details.
     def user(user_id, args = {})
-      args['user_id'] = user_id
-      return PhotoList.new(@flickr, 'flickr.people.getPublicPhotos', args)
+      args[:user_id] = user_id
+      PhotoList.new(@flickr, 'flickr.people.getPublicPhotos', args)
     end
     
   end
