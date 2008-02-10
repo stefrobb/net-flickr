@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2007 Ryan Grove <ryan@wonko.com>
+# Copyright (c) 2007-2008 Ryan Grove <ryan@wonko.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,9 @@
 #++
 
 # Append this file's directory to the include path if it's not there already.
-unless $:.include?(File.dirname(__FILE__)) ||
-    $:.include?(File.expand_path(File.dirname(__FILE__)))
-  $:.unshift(File.dirname(__FILE__)) 
-end
-  
+$:.unshift(File.dirname(__FILE__))
+$:.uniq!
+
 # stdlib includes
 require 'digest/md5'
 require 'net/http'
@@ -60,10 +58,10 @@ module Net
   # straightforward. See below for examples.
   # 
   # Author::    Ryan Grove (mailto:ryan@wonko.com)
-  # Version::   0.1.0
-  # Copyright:: Copyright (c) 2007 Ryan Grove. All rights reserved.
+  # Version::   0.0.1
+  # Copyright:: Copyright (c) 2007-2008 Ryan Grove. All rights reserved.
   # License::   New BSD License (http://opensource.org/licenses/bsd-license.php)
-  # Website::   http://wonko.com/software/net-flickr/
+  # Website::   http://code.google.com/p/net-flickr/
   # 
   # == APIs not yet implemented
   # 
@@ -88,11 +86,12 @@ module Net
   # * urls
   # 
   class Flickr
-    AUTH_URL      = 'http://flickr.com/services/auth/'
-    REST_ENDPOINT = 'http://api.flickr.com/services/rest/'
-    VERSION       = '0.1.0'
+    AUTH_URL      = 'http://flickr.com/services/auth/'.freeze
+    REST_ENDPOINT = 'http://api.flickr.com/services/rest/'.freeze
+    VERSION       = '0.0.1'.freeze
 
-    attr_reader :api_key, :api_secret, :auth, :people, :photos
+    attr_accessor :timeout
+    attr_reader :api_key, :api_secret
     
     # Creates a new Net::Flickr object that will use the specified _api_key_ and
     # _api_secret_ to connect to Flickr. If you don't already have a Flickr API
@@ -108,6 +107,11 @@ module Net
       @auth   = Auth.new(self)
       @people = People.new(self)
       @photos = Photos.new(self)
+    end
+    
+    # Returns a Net::Flickr::Auth instance.
+    def auth
+      @auth
     end
     
     # Parses the specified Flickr REST response. If the response indicates a
@@ -131,6 +135,16 @@ module Net
       else
         raise InvalidResponse, 'Invalid Flickr API response'
       end
+    end
+    
+    # Returns a Net::Flickr::People instance.
+    def people
+      @people
+    end
+    
+    # Returns a Net::Flickr::Photos instance.
+    def photos
+      @photos
     end
     
     # Calls the specified Flickr REST API _method_ with the supplied arguments
