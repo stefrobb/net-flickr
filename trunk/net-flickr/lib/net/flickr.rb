@@ -59,6 +59,7 @@ module Net
   # straightforward. See below for examples.
   # 
   # Author::    Ryan Grove (mailto:ryan@wonko.com)
+  # Author::    Nate Agrin (mailto:n8@n8agrin.com) 
   # Version::   0.0.1
   # Copyright:: Copyright (c) 2007-2008 Ryan Grove. All rights reserved.
   # License::   New BSD License (http://opensource.org/licenses/bsd-license.php)
@@ -103,16 +104,23 @@ module Net
     def initialize(api_key, api_secret = nil)
       @api_key    = api_key
       @api_secret = api_secret
-      
-      # Initialize dependent classes.
-      @auth   = Auth.new(self)
-      @people = People.new(self)
-      @photos = Photos.new(self)
     end
     
-    # Returns a Net::Flickr::Auth instance.
+    # calls to the inner classes
     def auth
-      @auth
+      @auth ||= load_class(:Auth)
+    end
+    
+    def people
+      @people ||= load_class(:People)
+    end
+    
+    def photos
+      @photos ||= load_class(:Photos)
+    end
+    
+    def test
+      @test ||= load_class(:Test)
     end
     
     # Parses the specified Flickr REST response. If the response indicates a
@@ -136,16 +144,6 @@ module Net
       else
         raise InvalidResponse, 'Invalid Flickr API response'
       end
-    end
-    
-    # Returns a Net::Flickr::People instance.
-    def people
-      @people
-    end
-    
-    # Returns a Net::Flickr::Photos instance.
-    def photos
-      @photos
     end
     
     # Calls the specified Flickr REST API _method_ with the supplied arguments
@@ -214,6 +212,17 @@ module Net
 
       return uri.to_s
     end
+    
+    private
+    # We use const_defined? because each sub library should be loaded by the
+    # require statements at the top of this file. This keeps things simple,
+    # at least for now.
+    def load_class(klass)
+      unless Net::Flickr.const_defined?(klass)
+        raise LoadError, "Net::Flickr::#{klass.to_s} not found."
+      end
+      Net::Flickr.const_get(klass).new(self)
+    end
+    
   end
-
 end
