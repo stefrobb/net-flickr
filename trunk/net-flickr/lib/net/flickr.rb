@@ -49,6 +49,7 @@ require 'flickr/photo'
 require 'flickr/photolist'
 require 'flickr/photos'
 require 'flickr/tag'
+require 'flickr/test'
 
 module Net
 
