@@ -112,6 +112,9 @@ module Net; class Flickr
     # authorized your application, you can call get_token with the frob provided
     # by Flickr to authenticate.
     def url_webapp(perms)
+      if perms != :read && @flickr.api_secret.nil?
+        raise AuthorizationError, 'A secret key is required to sign this url.'      
+      end
       return @flickr.sign_url(Flickr::AUTH_URL +
           "?api_key=#{@flickr.api_key}&perms=#{perms}")
     end

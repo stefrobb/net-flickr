@@ -98,6 +98,10 @@ module Net; class Flickr
       return @is_friend || @is_public
     end
     
+    def geo
+      @geo ||= Net::Flickr::Photo::Geo.new(self, @flickr)
+    end
+    
     # flickr.photos.getExif
     def gps
       raise NotImplementedError
@@ -154,7 +158,7 @@ module Net; class Flickr
       return nil
     end
 
-    alias prev previous
+    alias :prev :previous
     
     # Whether or not this photo is visible to the general public.
     def public?
