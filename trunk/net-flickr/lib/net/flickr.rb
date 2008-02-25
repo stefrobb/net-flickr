@@ -42,6 +42,7 @@ require 'hpricot'
 # Net::Flickr includes
 require 'flickr/auth'
 require 'flickr/errors'
+require 'flickr/geo'
 require 'flickr/list'
 require 'flickr/people'
 require 'flickr/person'
@@ -150,7 +151,8 @@ module Net
     # and returns a Flickr REST response in XML format. If an API secret is set,
     # the request will be properly signed.
     def request(method, args = {})
-      params  = args.merge({'method' => method, 'api_key' => @api_key})      
+      params  = args.merge({'method' => method, 'api_key' => @api_key})
+puts params.keys
       url     = URI.parse(REST_ENDPOINT)
       http    = Net::HTTP.new(url.host, url.port)
       request = sign_request(Net::HTTP::Post.new(url.path), params)
@@ -176,19 +178,19 @@ module Net
     # Signs a Flickr API request with the API secret if set.
     def sign_request(request, params)
       # If the secret isn't set, we can't sign anything.
-      if @api_secret.nil?
+      if @api_secret.nil? || auth.token.nil?
         request.set_form_data(params)
         return request
       end
       
       # Add auth_token to the param list if we're already authenticated.
-      params['auth_token'] = @auth.token unless @auth.token.nil?
+      params['auth_token'] = auth.token unless auth.token.nil?
       
       # Build a sorted, concatenated parameter list as described at
       # http://flickr.com/services/api/auth.spec.html
       paramlist = ''
-      params.keys.sort.each {|key| paramlist << key << 
-          URI.escape(params[key].to_s) }
+      params.keys.map{ |key| key.to_s }.sort.each{ |key|
+        paramlist << key << URI.escape(params[key].to_s) }
       
       # Sign the request with a hash of the secret key and the concatenated
       # parameter list.

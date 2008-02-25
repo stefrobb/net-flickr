@@ -48,6 +48,33 @@ module Net; class Flickr
     def initialize(flickr)
       @flickr = flickr
     end
+    
+    # Missing methods
+    # flickr.photos.delete
+    # flickr.photos.getAllContexts
+    # flickr.photos.getContactsPhotos
+    # flickr.photos.getContactsPublicPhotos
+    # flickr.photos.getContext
+    # flickr.photos.getCounts
+    # flickr.photos.getExif
+    # flickr.photos.getFavorites
+    # flickr.photos.getInfo
+    # flickr.photos.getNotInSet
+    # flickr.photos.getPerms
+    # flickr.photos.getRecent
+    # flickr.photos.getSizes
+    # flickr.photos.getUntagged
+    # flickr.photos.getWithGeoData
+    # flickr.photos.getWithoutGeoData
+    # flickr.photos.recentlyUpdated
+    # flickr.photos.removeTag
+    # flickr.photos.search
+    # flickr.photos.setContentType
+    # flickr.photos.setDates
+    # flickr.photos.setMeta
+    # flickr.photos.setPerms
+    # flickr.photos.setSafetyLevel
+    # flickr.photos.setTags
 
     # Gets a list of recent photos from the calling user's contacts. This method
     # requires authentication with +read+ permission.
@@ -65,6 +92,8 @@ module Net; class Flickr
       
       return photos
     end
+    
+    alias :get_contacts_photos :contacts
     
     # Gets a list of recent public photos from the specified user's contacts.
     # 
@@ -84,6 +113,8 @@ module Net; class Flickr
       return photos
     end
     
+    alias :get_contacts_public_photos :contacts_public
+    
     # Gets a list of photo counts for the given date ranges for the calling
     # user. The list of photo counts is returned as an XML chunk. This method
     # requires authentication with +read+ permission.
@@ -94,6 +125,8 @@ module Net; class Flickr
       @flickr.request('flickr.photos.getCounts', args).at('photocounts').
           to_original_html
     end
+    
+    alias :get_counts :counts
     
     # Deletes the specified photo from Flickr. This method requires
     # authentication with +delete+ permission.
@@ -112,6 +145,8 @@ module Net; class Flickr
       PhotoList.new(@flickr, 'flickr.photos.getWithGeoData', args)
     end
     
+    alias :get_with_geo_data :geotagged
+    
     # Gets a list of the calling user's photos that have not been geotagged.
     # This method requires authentication with +read+ permission.
     # 
@@ -120,6 +155,8 @@ module Net; class Flickr
     def not_geotagged(args = {})
       PhotoList.new(@flickr, 'flickr.photos.getWithoutGeoData', args)
     end
+    
+    alias :get_without_geo_data :not_geotagged
 
     # Gets a list of the calling user's photos that are not included in any
     # sets. This method requires authentication with +read+ permission.
@@ -130,6 +167,8 @@ module Net; class Flickr
       PhotoList.new(@flickr, 'flickr.photos.getNotInSet', args)
     end
     
+    alias :get_not_in_set :not_in_set
+    
     # Gets a list of the latest public photos uploaded to Flickr.
     # 
     # See http://flickr.com/services/api/flickr.photos.getRecent.html for
@@ -137,6 +176,8 @@ module Net; class Flickr
     def recent(args = {})
       PhotoList.new(@flickr, 'flickr.photos.getRecent', args)
     end
+    
+    alias :get_recent :recent
     
     # Gets a list of the calling user's photos that have been created or
     # modified since the specified _min_date_. This method requires
@@ -175,6 +216,8 @@ module Net; class Flickr
       PhotoList.new(@flickr, 'flickr.photos.getUntagged', args)
     end
     
+    alias :get_untagged :untagged
+    
     # Gets a list of public photos for the specified _user_id_.
     # 
     # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
@@ -183,6 +226,8 @@ module Net; class Flickr
       args[:user_id] = user_id
       PhotoList.new(@flickr, 'flickr.people.getPublicPhotos', args)
     end
+    
+    alias :get_public_photos :user
     
   end
 
