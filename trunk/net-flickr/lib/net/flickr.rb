@@ -178,7 +178,7 @@ module Net
     # Signs a Flickr API request with the API secret if set.
     def sign_request(request, params)
       # If the secret isn't set, we can't sign anything.
-      if @api_secret.nil? || auth.token.nil?
+      if @api_secret.nil?
         request.set_form_data(params)
         return request
       end
@@ -189,7 +189,7 @@ module Net
       # Build a sorted, concatenated parameter list as described at
       # http://flickr.com/services/api/auth.spec.html
       paramlist = ''
-      params.keys.map{ |key| key.to_s }.sort.each{ |key|
+      params.keys.sort.each{ |key|
         paramlist << key << URI.escape(params[key].to_s) }
       
       # Sign the request with a hash of the secret key and the concatenated
