@@ -9,5 +9,5 @@ require File.join(File.dirname(__FILE__), "spec_helpers", "flickr_generator")
 
 require 'flickr'
 
-FLICKR_API_KEY = ''
-FLICKR_API_SECRET = ''
+FLICKR_API_KEY = '3918b75b450370617b0cfe084298a78f'
+FLICKR_API_SECRET = 'cdae791445fe86ff'

@@ -34,10 +34,14 @@ module Net; class Flickr
     
     def initialize(flickr, person_xml)
       @flickr = flickr
+      @id     = person_xml['nsid']
+      @infoxml= nil
       
-      @id       = person_xml['nsid']
-      @username = person_xml.at('username').inner_text
-      @infoxml  = nil
+      if person_xml.at('username').nil? # this is a contact
+        @username = person_xml['username']
+      else # this is a call to a people function
+        @username = person_xml.at('username').inner_text
+      end
     end
     
     #--
@@ -61,6 +65,12 @@ module Net; class Flickr
       end
       
       return false
+    end
+    
+    # see flickr.contacts.getPublicList
+    def contacts(args = {})
+      args['user_id'] = @id
+      @flickr.contacts.get_public_list(args)
     end
     
     # +true+ if this person is a family member of the calling user, +false+
