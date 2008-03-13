@@ -100,7 +100,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getContactsPublicPhotos.html
     # for details.
     def contacts_public(user_id, args = {})
-      args[:user_id] = user_id
+      args['user_id'] = user_id
       
       response = @flickr.request('flickr.photos.getContactsPublicPhotos', args)
       
@@ -189,7 +189,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.recentlyUpdated.html for
     # details.
     def recently_updated(min_date, args = {})
-      args[:min_date] = min_date.to_i
+      args['min_date'] = min_date.to_i
       PhotoList.new(@flickr, 'flickr.photos.recentlyUpdated', args)
     end
     
@@ -223,7 +223,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
     # details.
     def user(user_id, args = {})
-      args[:user_id] = user_id
+      args['user_id'] = user_id
       PhotoList.new(@flickr, 'flickr.people.getPublicPhotos', args)
     end
     

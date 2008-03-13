@@ -46,7 +46,7 @@ module Net; class Flickr
       args['find_email'] = email
       response = @flickr.request('flickr.people.findByEmail', args)
 
-      return Person.new(@flickr, response.at('user'))
+      Person.new(@flickr, response.at('user'))
     end
     
     # Looks up a Flickr user based on their username.
@@ -57,7 +57,7 @@ module Net; class Flickr
       args['username'] = username
       response = @flickr.request('flickr.people.findByUsername', args)
       
-      return Person.new(@flickr, response.at('user'))
+      Person.new(@flickr, response.at('user'))
     end
   
   end
