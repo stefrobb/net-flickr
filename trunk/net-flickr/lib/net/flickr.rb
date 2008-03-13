@@ -152,7 +152,7 @@ module Net
     # the request will be properly signed.
     def request(method, args = {})
       params  = args.merge({'method' => method, 'api_key' => @api_key})
-puts params.keys
+
       url     = URI.parse(REST_ENDPOINT)
       http    = Net::HTTP.new(url.host, url.port)
       request = sign_request(Net::HTTP::Post.new(url.path), params)
