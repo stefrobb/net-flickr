@@ -41,16 +41,20 @@ require 'hpricot'
 
 # Net::Flickr includes
 require 'flickr/auth'
+require 'flickr/contacts'
 require 'flickr/errors'
 require 'flickr/geo'
-require 'flickr/list'
 require 'flickr/people'
 require 'flickr/person'
 require 'flickr/photo'
-require 'flickr/photolist'
 require 'flickr/photos'
 require 'flickr/tag'
 require 'flickr/test'
+
+# Net::Flickr List classes
+require 'flickr/list' # must come first
+require 'flickr/contactlist'
+require 'flickr/photolist'
 
 module Net
 
@@ -63,6 +67,7 @@ module Net
   # Author::    Nate Agrin (mailto:n8@n8agrin.com) 
   # Version::   0.0.1
   # Copyright:: Copyright (c) 2007-2008 Ryan Grove. All rights reserved.
+  # Copyright:: Copyright (c) 2008 Nate Agrin. All rights reserved.
   # License::   New BSD License (http://opensource.org/licenses/bsd-license.php)
   # Website::   http://code.google.com/p/net-flickr/
   # 
@@ -110,6 +115,10 @@ module Net
     # calls to the inner classes
     def auth
       @auth ||= load_class(:Auth)
+    end
+    
+    def contacts
+      @contacts ||= load_class(:Contacts)
     end
     
     def people
