@@ -35,9 +35,7 @@ module Net; class Flickr
   
     attr_reader :id, :author, :raw, :name
     
-    def initialize(flickr, tag_xml)
-      @flickr = flickr
-      
+    def initialize(tag_xml)
       @id          = tag_xml['id']
       @author      = tag_xml['author']
       @raw         = tag_xml['raw']

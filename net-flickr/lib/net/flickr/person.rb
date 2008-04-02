@@ -32,8 +32,7 @@ module Net; class Flickr
     
     attr_reader :id, :username
     
-    def initialize(flickr, person_xml)
-      @flickr = flickr
+    def initialize(person_xml)
       @id     = person_xml['nsid']
       @infoxml= nil
       
@@ -70,7 +69,7 @@ module Net; class Flickr
     # see flickr.contacts.getPublicList
     def contacts(args = {})
       args['user_id'] = @id
-      @flickr.contacts.get_public_list(args)
+      Net::Flickr.instance().contacts.get_public_list(args)
     end
     
     # +true+ if this person is a family member of the calling user, +false+
@@ -181,7 +180,7 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
     # details.
     def photos(args = {})
-      return @flickr.photos.user(@id, args)
+      return Net::Flickr.instance().photos.get_public_photos(@id, args)
     end
     
     # +true+ if this person is a Flickr Pro user, +false+ otherwise.
@@ -251,7 +250,7 @@ module Net; class Flickr
     def get_info
       return @infoxml unless @infoxml.nil?
       
-      response = @flickr.request('flickr.people.getInfo', 'user_id' => @id)
+      response = Net::Flickr.instance().request('flickr.people.getInfo', 'user_id' => @id)
       
       return @infoxml = response.at('person')
     end

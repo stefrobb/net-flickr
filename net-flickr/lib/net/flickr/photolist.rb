@@ -44,7 +44,7 @@ module Net; class Flickr
       super
 
       @response.search('photo').each do |photo_xml|
-        @items << Photo.new(@flickr, photo_xml)
+        @items << Photo.new(photo_xml)
       end
     end
 

@@ -37,8 +37,7 @@ module Net; class Flickr
     
     attr_reader :page, :pages, :per_page, :total
     
-    def initialize(flickr, load_method, load_args)
-      @flickr      = flickr
+    def initialize(load_method, load_args)
       @load_method = load_method
       @load_args   = load_args
       
@@ -48,6 +47,10 @@ module Net; class Flickr
     #--
     # Public Instance Methods
     #++
+    
+    def size
+      @items.size
+    end
     
     def [](index)
       return @items[index]
@@ -121,7 +124,7 @@ module Net; class Flickr
     def update_list
       @items = []
       
-      @response = @flickr.request(@load_method, @load_args).
+      @response = Net::Flickr.instance().request(@load_method, @load_args).
           at('/*[@page]:first')
       
       @per_page = @response['perpage'].to_i

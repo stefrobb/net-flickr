@@ -30,16 +30,12 @@ module Net; class Flickr
 
   class Contacts
     
-    def initialize(flickr)
-      @flickr = flickr
-    end
-    
     def get_list(args = {})
-      ContactList.new(@flickr, 'flickr.contacts.getList', args)
+      ContactList.new('flickr.contacts.getList', args)
     end
     
     def get_public_list(args = {})
-      ContactList.new(@flickr, 'flickr.contacts.getPublicList', args)
+      ContactList.new('flickr.contacts.getPublicList', args)
     end
 
   end
