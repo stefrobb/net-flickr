@@ -30,10 +30,6 @@ module Net; class Flickr
 
   class People
   
-    def initialize(flickr)
-      @flickr = flickr
-    end
-  
     #--
     # Public Instance Methods
     #++
@@ -44,9 +40,9 @@ module Net; class Flickr
     # details.
     def find_by_email(email, args = {})
       args['find_email'] = email
-      response = @flickr.request('flickr.people.findByEmail', args)
+      response = Net::Flickr.instance().request('flickr.people.findByEmail', args)
 
-      Person.new(@flickr, response.at('user'))
+      Person.new(response.at('user'))
     end
     
     # Looks up a Flickr user based on their username.
@@ -55,9 +51,18 @@ module Net; class Flickr
     # details.
     def find_by_username(username, args = {})
       args['username'] = username
-      response = @flickr.request('flickr.people.findByUsername', args)
+      response = Net::Flickr.instance().request('flickr.people.findByUsername', args)
       
-      Person.new(@flickr, response.at('user'))
+      Person.new(response.at('user'))
+    end
+    
+    # Gets a list of public photos for the specified _user_id_.
+    # 
+    # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
+    # details.
+    def get_public_photos(user_id, args = {})
+      args['user_id'] = user_id
+      PhotoList.new('flickr.people.getPublicPhotos', args)
     end
   
   end

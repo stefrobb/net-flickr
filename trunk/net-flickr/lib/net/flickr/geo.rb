@@ -7,9 +7,8 @@ module Net; class Flickr; class Photo
   
     #attr_reader :id, :author, :raw, :name
     
-    def initialize(photo, flickr)
+    def initialize(photo)
       @photo = photo
-      @flickr = flickr
       
       #@id          = geo_xml['id']
       # @author      = tag_xml['author']
@@ -19,8 +18,8 @@ module Net; class Flickr; class Photo
     end
     
     def get_location
-      response = @flickr.request('flickr.photos.geo.getLocation',
-                                 'photo_id' => @photo.id)
+      response = Net::Flickr.instance().request('flickr.photos.geo.getLocation',
+                                                'photo_id' => @photo.id)
       return {'lat' => response.at('location')['latitude'],
               'lng' => response.at('location')['longitude']}
       

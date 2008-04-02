@@ -48,9 +48,7 @@ module Net; class Flickr
     
     attr_reader :id, :secret, :server, :farm
     
-    def initialize(flickr, photo_xml)
-      @flickr = flickr
-      
+    def initialize(photo_xml)
       parse_xml(photo_xml)
       
       # Detailed photo info.
@@ -61,7 +59,7 @@ module Net; class Flickr
     # Deletes this photo from Flickr. This method requires authentication with
     # +delete+ permission.
     def delete
-      @flickr.photos.delete(@id)
+      Net::Flickr.instance().photos.delete(@id)
     end
     
     # Gets this photo's description.
@@ -99,7 +97,7 @@ module Net; class Flickr
     end
     
     def geo
-      @geo ||= Net::Flickr::Photo::Geo.new(self, @flickr)
+      @geo ||= Net::Flickr::Photo::Geo.new(self)
     end
     
     # flickr.photos.getExif
@@ -119,7 +117,7 @@ module Net; class Flickr
       context_xml = get_context
       next_xml    = context_xml.at('nextphoto')
       
-      return Photo.new(@flickr, next_xml) if next_xml[:id] != '0'
+      return Photo.new(next_xml) if next_xml[:id] != '0'
       return nil
     end
     
@@ -154,7 +152,7 @@ module Net; class Flickr
       context_xml = get_context
       prev_xml = context_xml.at('prevphoto')
       
-      return Photo.new(@flickr, prev_xml) if prev_xml[:id] != '0'
+      return Photo.new(prev_xml) if prev_xml[:id] != '0'
       return nil
     end
 
@@ -249,7 +247,7 @@ module Net; class Flickr
     
     # Gets context information for this photo.
     def get_context
-      @context_xml ||= @flickr.request('flickr.photos.getContext',
+      @context_xml ||= Net::Flickr.instance().request('flickr.photos.getContext',
           :photo_id => @id)
     end
     
@@ -257,7 +255,7 @@ module Net; class Flickr
     def get_info
       return @info_xml unless @info_xml.nil?
 
-      response = @flickr.request('flickr.photos.getInfo', :photo_id => @id, 
+      response = Net::Flickr.instance().request('flickr.photos.getInfo', :photo_id => @id, 
           :secret => @secret)
       
       @info_xml = response.at('photo')
@@ -329,7 +327,7 @@ module Net; class Flickr
       args[:title]       = title
       args[:description] = description
       
-      @flickr.request('flickr.photos.setMeta', args)
+      Net::Flickr.instance().request('flickr.photos.setMeta', args)
       
       @info_xml = nil
     end
