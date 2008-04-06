@@ -49,11 +49,28 @@ module Net; class Flickr
     attr_reader :id, :secret, :server, :farm
     
     def initialize(photo_xml)
-      parse_xml(photo_xml)
+      raise AuthorizationError if Net::Flickr.instance().api_key.nil?
+      
+      if photo_xml.is_a?(Hpricot::Elem) || photo_xml.is_a?(String)
+        parse_xml(photo_xml)
+      elsif photo_xml.is_a?(Integer)
+        @id = photo_xml
+      end
       
       # Detailed photo info.
       @context_xml = nil
       @info_xml    = nil
+    end
+    
+    # Call and retreive comments
+    def comments
+      raise NotImplementedError
+    end
+    
+    # Check to see if there are comments for the photo
+    def comments?
+      info_xml = get_info
+      return info_xml.at('comments').inner_text.to_i > 0
     end
     
     # Deletes this photo from Flickr. This method requires authentication with
@@ -207,9 +224,13 @@ module Net; class Flickr
       end
     end
     
-    # flickr.photos.getInfo
+    # get the tags
     def tags
-      raise NotImplementedError
+      tags = {}
+      get_info.search('//tag').each do |tag|
+        tags[tag.inner_html] = Net::Flickr::Tag.new(tag)
+      end
+      tags
     end
     
     # Gets the time this photo was taken.
@@ -230,7 +251,8 @@ module Net; class Flickr
     
     # Gets this photo's title.
     def title
-      @title
+      info_xml = get_info
+      return info_xml.at('title').inner_text
     end
     
     # Sets this photo's title. This method requires authentication with +write+
@@ -301,14 +323,13 @@ module Net; class Flickr
         @is_friend = nil
         @is_family = nil  
       
-      elsif photo_xml[:originalsecret] && photo_xml.at('owner[@nsid]')
+      elsif photo_xml[:secret] && photo_xml.at('owner[@nsid]')
         # This is a detailed XML chunk (probably from flickr.photos.getInfo).
         @id        = photo_xml[:id]
         @owner     = photo_xml.at('owner[@nsid]')
         @secret    = photo_xml[:secret]
         @server    = photo_xml[:server]
         @farm      = photo_xml[:farm]
-        @title     = photo_xml.at(:title).inner_text
         @is_public = photo_xml.at('visibility')[:ispublic] == '1'
         @is_friend = photo_xml.at('visibility')[:isfriend] == '1'
         @is_family = photo_xml.at('visibility')[:isfamily] == '1'

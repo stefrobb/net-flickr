@@ -243,6 +243,7 @@ module Net
       end
       
       if @response['stat'] == 'ok'
+        return true if @response.empty?
         return @response
       elsif @response['stat'] == 'fail'
         raise APIError, @response.at('/err')['msg']

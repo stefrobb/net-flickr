@@ -40,12 +40,16 @@ module Net; class Flickr
       @author      = tag_xml['author']
       @raw         = tag_xml['raw']
       @name        = tag_xml.inner_text
-      @machine_tag = tax_xml['machine_tag'] == '1'
+      @machine_tag = tag_xml['machine_tag'] == '1'
     end
     
     # +true+ if this tag is a machine tag, +false+ otherwise.
     def machine?
       return @machine_tag
+    end
+    
+    def to_s
+      @raw
     end
   
   end
