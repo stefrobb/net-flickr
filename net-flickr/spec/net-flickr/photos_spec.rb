@@ -19,19 +19,28 @@ describe Net::Flickr::Photos do
   # end
   
   it "should be able to add tags to a photo" do
-    pending
+    pending "Requires authentication that is not currently possible in spec"
   end
   
   it "should be able to delete a photo" do
-    pending
+    pending "Requires authentication that is not currently possible in spec"
   end
   
-  it "should throw and catch an exception when permissions are not available to delete and return false" do
-    signed_flickr.photos.delete('234242423').should be(false)
+  it "should throw and catch an exception when permissions are not available to delete" do
+    lambda {
+      signed_flickr.photos.delete('234242423')
+    }.should raise_error(Net::Flickr::APIError)
   end  
   
   it "should be able to retreive all the sets and pools (contexts) the photo belongs to" do
-    signed_flickr.photos.get_all_contexts(FLICKR_PHOTO_ID).should_not be_nil
+    # signed_flickr.photos.get_all_contexts(PHOTO_ID).should be_instance_of
+    pending
+  end
+  
+  it "should not be able to get a user's contact's photos without authorization" do
+    lambda {
+      signed_flickr.photos.get_contacts_photos 
+    }.should raise_error(Net::Flickr::APIError)
   end
   
   it "should be able to get all of a user's contact's photos" do
@@ -39,11 +48,18 @@ describe Net::Flickr::Photos do
   end
   
   it "should be able to get all of a user's contact's public photos" do
-    pending
+    lambda {
+      photos = signed_flickr.photos.get_contacts_public_photos(USER_ID)
+      photos.size.should_not be(0)
+    }.should_not raise_error
   end
   
   it "should be able to get the next and previous photos in a photostream" do
-    pending
+    lambda {
+      context = signed_flickr.photos.get_context(PHOTO_ID)
+      context['next'].should be_instance_of(Net::Flickr::Photo)
+      context['previous'].should be_instance_of(Net::Flickr::Photo)
+    }.should_not raise_error
   end
   
   it "should be able to retrieve a count of photos created or added between certain dates" do
@@ -51,7 +67,16 @@ describe Net::Flickr::Photos do
   end
   
   it "should be able to provide exif data on a photo" do
-    pending
+    lambda {
+      exif = signed_flickr.photos.get_exif(PHOTO_ID)
+      exif.should be_instance_of(Hpricot::Elem)
+    }.should_not raise_error
+  end
+  
+  it "should return nil when no exif data is available for a photo" do
+    lambda {
+      signed_flickr.photos.get_exif(PHOTO_WO_EXIF).should be_nil
+    }.should_not raise_error
   end
   
   it "should be able to retrieve a user's favorites" do
@@ -59,7 +84,10 @@ describe Net::Flickr::Photos do
   end
   
   it "shold be able to get information about a photo" do
-    pending
+    lambda {
+      photo = signed_flickr.photos.get_info(PHOTO_ID)
+      photo.should be_an_instance_of(Net::Flickr::Photo)
+    }.should_not raise_error
   end
   
   it "should be able to get photos that are not in a given set" do

@@ -15,24 +15,31 @@ module Net; class Flickr; class Photo
       # @raw         = tag_xml['raw']
       # @name        = tag_xml.inner_text
       # @machine_tag = tax_xml['machine_tag'] == '1'
+      @response  = nil
+      @latitude  = nil
+      @longitude = nil
+      @accuracy  = nil
     end
     
     def get_location
-      response = Net::Flickr.instance().request('flickr.photos.geo.getLocation',
-                                                'photo_id' => @photo.id)
-      return {'lat' => response.at('location')['latitude'],
-              'lng' => response.at('location')['longitude']}
-      
-      rescue Net::Flickr::APIError
-        return nil
+      return @response unless @response.nil?
+      @response = Net::Flickr.instance().request('flickr.photos.geo.getLocation',
+                                                 'photo_id' => @photo.id)
+    end
+    
+    def latitude
+      get_location.at('location')[:latitude].to_f
+    end
+    
+    def longitude
+      get_location.at('location')[:longitude].to_f
+    end
+    
+    def accuracy
+      get_location.at('location')[:accuracy].to_i
     end
     
     alias :location :get_location
-    
-    def set_location(args = {})
-    end
-    
-    alias :location= :set_location
   
   end
 

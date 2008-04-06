@@ -64,12 +64,32 @@ module Net; class Flickr
     # flickr.photos.setSafetyLevel
     # flickr.photos.setTags
     
+    # Add tags to a photo. Requires +write+ permissions.
+    #
+    # See http://www.flickr.com/services/api/flickr.photos.addTags.html
+    # for details
+    def add_tags(photo_id, tags)
+      Net::Flickr.instance().request('flickr.photos.addTags',
+                                     { 'photo_id' => photo_id,
+                                       'tags'     => tags })
+    end
+    
+    # Deletes the specified photo from Flickr. This method requires
+    # authentication with +write+ permission.
+    # 
+    # See http://flickr.com/services/api/flickr.photos.delete.html for details.
+    def delete(photo_id)
+      Net::Flickr.instance().request('flickr.photos.delete',
+                                     'photo_id' => photo_id)
+    end
+    
     # Gets a list of all the sets and pools (context) a photo is found in
     #
     # See http://www.flickr.com/services/api/flickr.photos.getAllContexts.html
     # for more details.
     def get_all_contexts(photo_id)
-      response = Net::Flickr.instance().request('flickr.photos.getAllContexts', 'photo_id' => photo_id)
+      Net::Flickr.instance().request('flickr.photos.getAllContexts',
+                                     'photo_id' => photo_id)
     end
 
     # Gets a list of recent photos from the calling user's contacts. This method
@@ -79,14 +99,13 @@ module Net; class Flickr
     # for details.
     def get_contacts_photos(args = {})
       response = Net::Flickr.instance().request('flickr.photos.getContactsPhotos', args)
-      
       photos = []
       
       response.search('photos/photo').each do |photo_xml|
         photos << Photo.new(photo_xml)
       end
       
-      return photos
+      photos
     end
     
     alias :contacts :get_contacts_photos
@@ -104,10 +123,34 @@ module Net; class Flickr
         photos << Photo.new(photo_xml)
       end
       
-      return photos
+      photos
     end
     
     alias :contacts_public :get_contacts_public_photos
+    
+    # Gets the next and previous photos in a photostream given a photo_id
+    #
+    # See http://www.flickr.com/services/api/flickr.photos.getContext.html
+    # for details.
+    def get_context(photo_id)
+      response = Net::Flickr.instance().request('flickr.photos.getContext',
+                                                'photo_id' => photo_id)
+      previous_photo = response.at('prevphoto')
+      next_photo     = response.at('nextphoto')
+      photos = {}
+      unless previous_photo[:id] == '0'
+        photos['previous'] = Net::Flickr::Photo.new(previous_photo[:id].to_i)
+      else
+        photos['previous'] = nil
+      end
+      
+      unless next_photo[:id] == '0'
+        photos['next'] = Net::Flickr::Photo.new(next_photo[:id].to_i)
+      else
+        photos['next'] = nil
+      end
+      photos
+    end
     
     # Gets a list of photo counts for the given date ranges for the calling
     # user. The list of photo counts is returned as an XML chunk. This method
@@ -116,21 +159,23 @@ module Net; class Flickr
     # See http://flickr.com/services/api/flickr.photos.getCounts.html for
     # details.
     def get_counts(args = {})
-      Net::Flickr.instance().request('flickr.photos.getCounts', args).at('photocounts').to_original_html
+      Net::Flickr.instance().request('flickr.photos.getCounts', args).at('photocounts')
     end
     
     alias :counts :get_counts
     
-    # Deletes the specified photo from Flickr. This method requires
-    # authentication with +delete+ permission.
-    # 
-    # See http://flickr.com/services/api/flickr.photos.delete.html for details.
-    def delete(photo_id)
-      begin
-        Net::Flickr.instance().request('flickr.photos.delete', 'photo_id' => photo_id)
-      rescue Net::Flickr::APIError
-        return false
-      end
+    # Get any EXIF data applied to a photo and for now return the Hpricot
+    # element
+    #
+    # See http://www.flickr.com/services/api/flickr.photos.getExif.html
+    # for details
+    def get_exif(photo_id, secret = nil)
+      args = {}
+      args['photo_id'] = photo_id
+      args['secret'] = secret unless secret.nil?
+      resp = Net::Flickr.instance().request('flickr.photos.getExif', args).at('photo')
+      return nil if resp.empty?
+      resp
     end
     
     def get_info(photo_id)
