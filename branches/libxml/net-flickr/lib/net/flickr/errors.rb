@@ -26,11 +26,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #++
 
-module Net; class Flickr
-  
-  class APIError < StandardError; end
-  class InvalidResponse < StandardError; end
-  class AuthorizationError < StandardError; end
-  class ListError < StandardError; end
-
-end; end
+module Net
+  class Flickr  
+    class APIError < StandardError; end
+    class InvalidResponse < StandardError; end
+    class AuthorizationError < StandardError; end
+    class ListError < StandardError; end
+    class AdapterInterfaceError < StandardError; end
+  end
+end
