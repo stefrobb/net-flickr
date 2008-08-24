@@ -35,231 +35,108 @@ $:.uniq!
 require 'digest/md5'
 require 'net/http'
 require 'uri'
-require 'singleton'
-
-# RubyGems includes
 require 'rubygems'
-require 'hpricot'
+require 'xml'
 
-# Net::Flickr includes
-require 'flickr/auth'
-require 'flickr/contacts'
+# Include teh adapters
+require 'flickr/support/connection'
+
+# Net::Flickr's glorious errors
 require 'flickr/errors'
-require 'flickr/geo'
-require 'flickr/people'
-require 'flickr/person'
-require 'flickr/photo'
-require 'flickr/photos'
-require 'flickr/tag'
+
+# Flickr endpoint classes
 require 'flickr/test'
 
+# Net::Flickr includes
+# require 'flickr/auth'
+# require 'flickr/contacts'
+# require 'flickr/errors'
+# require 'flickr/geo'
+# require 'flickr/people'
+# require 'flickr/person'
+# require 'flickr/photo'
+# require 'flickr/photos'
+# require 'flickr/tag'
+
 # Net::Flickr List classes
-require 'flickr/list' # must come first
-require 'flickr/contactlist'
-require 'flickr/photolist'
+# require 'flickr/list'
+# require 'flickr/contactlist'
+# require 'flickr/photolist'
+
+# = Net::Flickr
+# 
+# This library implements Flickr's REST API. Its usage should be pretty
+# straightforward. See below for examples.
+# 
+# Author::    Ryan Grove (mailto:ryan@wonko.com)
+# Author::    Nate Agrin (mailto:n8@n8agrin.com) 
+# Version::   0.5
+# Copyright:: Copyright (c) 2007-2008 Ryan Grove. All rights reserved.
+# Copyright:: Copyright (c) 2008 Nate Agrin. All rights reserved.
+# License::   New BSD License (http://opensource.org/licenses/bsd-license.php)
+# Website::   http://code.google.com/p/net-flickr/
+#
+# Usage
+# flickr = Net::Flickr.new(API_KEY, API_SECRET)
+# flickr.photos.search() # defaults to using LibXML as the xml interpreter
+#
+# or
+#
+# flickr = Net::Flickr.new(API_KEY, API_SECRET, TOKEN)
+# flickr.adapter = Net::Flickr::Adapters::Hpricot.new()
+# flickr.photos.search()
 
 module Net
-
-  # = Net::Flickr
-  # 
-  # This library implements Flickr's REST API. Its usage should be pretty
-  # straightforward. See below for examples.
-  # 
-  # Author::    Ryan Grove (mailto:ryan@wonko.com)
-  # Author::    Nate Agrin (mailto:n8@n8agrin.com) 
-  # Version::   0.0.1
-  # Copyright:: Copyright (c) 2007-2008 Ryan Grove. All rights reserved.
-  # Copyright:: Copyright (c) 2008 Nate Agrin. All rights reserved.
-  # License::   New BSD License (http://opensource.org/licenses/bsd-license.php)
-  # Website::   http://code.google.com/p/net-flickr/
-  # 
-  # == APIs not yet implemented
-  # 
-  # * activity
-  # * blogs
-  # * contacts
-  # * favorites
-  # * groups
-  # * groups.pools
-  # * interestingness
-  # * photos.comments
-  # * photos.geo
-  # * photos.licenses
-  # * photos.notes
-  # * photos.transform
-  # * photos.upload
-  # * photosets
-  # * photosets.comments
-  # * reflection
-  # * tags
-  # * test
-  # * urls
-  # 
-  
-  # Flickr is a singleton, so that you can use it in Rails and avoid
-  # recursion issues when converting to something like JSON
   class Flickr
-    include Singleton
-    
-    AUTH_URL      = 'http://flickr.com/services/auth/'.freeze
-    REST_ENDPOINT = 'http://api.flickr.com/services/rest/'.freeze
-    VERSION       = '0.1.0'.freeze
+    VERSION = '1.0'.freeze
 
-    attr_accessor :timeout, :api_key, :api_secret, :response
+    attr_reader :adapter
+
+    def initialize(key, secret=nil, token=nil)
+      @adapter = Net::Flickr::Connection.new(key, secret, token)
+    end
     
-    # Creates a new Net::Flickr object that will use the specified _api_key_ and
-    # _api_secret_ to connect to Flickr. If you don't already have a Flickr API
-    # key, you can get one at http://flickr.com/services/api/keys.
-    # 
-    # If you don't provide an _api_secret_, you won't be able to make API calls
-    # requiring authentication.
-    def self.authorize(api_key, api_secret = nil)
-      instance = instance()
-      instance.api_key    = api_key
-      instance.api_secret = api_secret
-      instance
+    def adapter=(thing)
+      unless thing.kind_of?(Net::Flickr::Connection)
+        raise AdapterInterfaceError,
+              'Adapters must be Net::Flickr::Connections'
+      end
+      @adapter = thing
+      self
     end
     
     # calls to the inner classes
     def auth
       @auth ||= load_class(:Auth)
     end
-    
+
     def contacts
       @contacts ||= load_class(:Contacts)
     end
-    
+
     def people
       @people ||= load_class(:People)
     end
-    
+
     def photos
       @photos ||= load_class(:Photos)
     end
-    
+
     def photosets
       @photosets ||= load_class(:Photosets)
     end
-    
-    # Calls the specified Flickr REST API _method_ with the supplied arguments
-    # and returns a Flickr REST response in XML format. If an API secret is set,
-    # the request will be properly signed.
-    def request(method, args = {})
-      #clean the incoming parameter keys, make sure everything is uniq and a string
-      params = {}
-      args.each_key{ |key| params[key.to_s] = args[key].to_s }
-      params.merge!({'method' => method, 'api_key' => @api_key})
-      
-      # PENDING
-      # allow for a json object to be returned
-      # params.merge({'format' => @format.to_s}) if @format == :json
 
-      url     = URI.parse(REST_ENDPOINT)
-      http    = Net::HTTP.new(url.host, url.port)
-      request = sign_request(Net::HTTP::Post.new(url.path), params)
-      
-      http.start do |http|
-        if block_given?
-          http.request(request) { |response| yield response }
-        else
-          response = http.request(request)
-        
-          # Raise a Net::HTTP error if the HTTP request failed.
-          unless response.is_a?(Net::HTTPSuccess) || 
-              response.is_a?(Net::HTTPRedirection)
-            response.error!
-          end
-          
-          # Return the parsed response.
-          return parse_response(response.body)
-        end
-      end
-    end
-    
-    # Signs a Flickr URL with the API secret.
-    # This is only called in flickr.auth.getFrob, flickr.auth.url_webapp,
-    # flickr.auth.url_desktop
-    def sign_url(url)
-      # return url if @api_secret.nil?
-      if @api_secret.nil?
-        raise AuthorizationError, 'An API secret key is required to sign a url.'      
-      end
-
-      uri = URI.parse(url)
-
-      params = uri.query.split('&')
-      params << 'api_sig=' + Digest::MD5.hexdigest(@api_secret +
-          params.sort.join('').gsub('=', ''))
-
-      uri.query = params.join('&')
-
-      return uri.to_s
+    def test
+      @test ||= load_class(:Test)
     end
     
     private
-    # the constructor is private, because it's a singleton
-    def initialize
-      @response = nil
-      super
-    end
-    
-    # Signs a Flickr API request with the API secret if set.
-    def sign_request(request, params)
-      # If the secret isn't set, we can't sign anything.
-      if @api_secret.nil?
-        request.set_form_data(params)
-        return request
-      end
-      
-      # Add auth_token to the param list if we're already authenticated.
-      params['auth_token'] = auth.token unless auth.token.nil?
-      
-      # Build a sorted, concatenated parameter list as described at
-      # http://flickr.com/services/api/auth.spec.html
-      paramlist = ''
-      params.keys.sort.each{ |key|
-        paramlist << key << URI.escape(params[key]) }    
-
-      # Sign the request with a hash of the secret key and the concatenated
-      # parameter list.
-      params['api_sig'] = Digest::MD5.hexdigest(@api_secret + paramlist)
-      request.set_form_data(params)
-      
-      return request      
-    end
-    
-    # Parses the specified Flickr REST response. If the response indicates a
-    # successful request, the response block will be returned as an Hpricot
-    # element. Otherwise, an error will be raised.
-    def parse_response(response_xml)
-      begin
-        xml = Hpricot::XML(response_xml)
-      rescue => e
-        raise InvalidResponse, 'Invalid Flickr API response'
-      end
-      
-      unless @response = xml.at('/rsp')
-        raise InvalidResponse, 'Invalid Flickr API response'
-      end
-      
-      if @response['stat'] == 'ok'
-        return true if @response.empty?
-        return @response
-      elsif @response['stat'] == 'fail'
-        raise APIError, @response.at('/err')['msg']
-      else
-        raise InvalidResponse, 'Invalid Flickr API response'
-      end
-    end
-
-    # We use const_defined? because each sub library should be loaded by the
-    # require statements at the top of this file. This keeps things simple,
-    # at least for now.
     def load_class(klass)
       unless Net::Flickr.const_defined?(klass)
         raise LoadError, "Net::Flickr::#{klass.to_s} not found."
       end
-      Net::Flickr.const_get(klass).new
+      Net::Flickr.const_get(klass).new(@adapter)
     end
-  end
-end
+
+  end # Net::Flickr
+end # Net
