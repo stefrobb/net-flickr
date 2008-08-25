@@ -48,18 +48,26 @@ module Net; class Flickr
     
     attr_reader :id, :secret, :server, :farm
     
-    def initialize(photo_xml)
-      raise AuthorizationError if Net::Flickr.instance().api_key.nil?
+    def initialize(connection, photo)
+      @connection = connection
+      # if !photo.is_a?(Integer)
+      #   parse(photo)
+      # else
+      #   @id = photo
+      # end
+      parse(photo)
       
-      if photo_xml.is_a?(Hpricot::Elem) || photo_xml.is_a?(String)
-        parse_xml(photo_xml)
-      elsif photo_xml.is_a?(Integer)
-        @id = photo_xml
-      end
+      # raise AuthorizationError if Net::Flickr.instance().api_key.nil?
+      
+      # if photo_xml.is_a?(Hpricot::Elem) || photo_xml.is_a?(String)
+      #   parse_xml(photo_xml)
+      # elsif photo_xml.is_a?(Integer)
+      #   @id = photo_xml
+      # end
       
       # Detailed photo info.
-      @context_xml = nil
-      @info_xml    = nil
+      # @context_xml = nil
+      # @info_xml    = nil
     end
     
     # Call and retreive comments
@@ -76,13 +84,12 @@ module Net; class Flickr
     # Deletes this photo from Flickr. This method requires authentication with
     # +delete+ permission.
     def delete
-      Net::Flickr.instance().photos.delete(@id)
+      @connection.photos.delete(@id)
     end
     
     # Gets this photo's description.
     def description
-      info_xml = get_info
-      return info_xml.at('description').inner_text
+      return get_info.description.to_s
     end
     
     # Sets this photo's description. This method requires authentication with
@@ -269,7 +276,7 @@ module Net; class Flickr
     
     # Gets context information for this photo.
     def get_context
-      @context_xml ||= Net::Flickr.instance().request('flickr.photos.getContext',
+      @context_xml ||= @connection.request('flickr.photos.getContext',
           :photo_id => @id)
     end
     
@@ -277,26 +284,27 @@ module Net; class Flickr
     def get_info
       return @info_xml unless @info_xml.nil?
 
-      response = Net::Flickr.instance().request('flickr.photos.getInfo', :photo_id => @id, 
-          :secret => @secret)
+      response = @connection.request('flickr.photos.getInfo',
+                                     :photo_id => @id, 
+                                     :secret   => @secret)
       
-      @info_xml = response.at('photo')
+      @info_xml = response.photo
 
       if @is_family.nil? || @is_friend.nil? || @is_public.nil?
-        @is_family = @info_xml.at('visibility')[:isfamily] == '1'
-        @is_friend = @info_xml.at('visibility')[:isfriend] == '1'
-        @is_public = @info_xml.at('visibility')[:ispublic] == '1'
+        @is_family = @info_xml.visibility[:isfamily] == '1'
+        @is_friend = @info_xml.visibility[:isfriend] == '1'
+        @is_public = @info_xml.visibility[:ispublic] == '1'
       end
       
       return @info_xml
     end
     
     # Parse a photo xml chunk.
-    def parse_xml(photo_xml)
+    def parse(photo_xml)
       # Convert photo_xml to an Hpricot::Elem if it isn't one already.
-      unless photo_xml.is_a?(Hpricot::Elem)
-        photo_xml = Hpricot::XML(photo_xml)
-      end
+      # unless photo_xml.is_a?(Hpricot::Elem)
+      #   photo_xml = Hpricot::XML(photo_xml)
+      # end
       
       # Figure out what format we're dealing with, since someone at Flickr
       # thought it would be fun to be inconsistent (thanks, whoever you are).
@@ -323,16 +331,16 @@ module Net; class Flickr
         @is_friend = nil
         @is_family = nil  
       
-      elsif photo_xml[:secret] && photo_xml.at('owner[@nsid]')
+      elsif photo_xml[:secret] && photo_xml.owner[:nsid]
         # This is a detailed XML chunk (probably from flickr.photos.getInfo).
         @id        = photo_xml[:id]
-        @owner     = photo_xml.at('owner[@nsid]')
+        @owner     = photo_xml.owner[:nsid]
         @secret    = photo_xml[:secret]
         @server    = photo_xml[:server]
         @farm      = photo_xml[:farm]
-        @is_public = photo_xml.at('visibility')[:ispublic] == '1'
-        @is_friend = photo_xml.at('visibility')[:isfriend] == '1'
-        @is_family = photo_xml.at('visibility')[:isfamily] == '1'
+        @is_public = photo_xml.visibility[:ispublic] == '1'
+        @is_friend = photo_xml.visibility[:isfriend] == '1'
+        @is_family = photo_xml.visibility[:isfamily] == '1'
         @info_xml  = photo_xml
       end
     end
@@ -348,7 +356,7 @@ module Net; class Flickr
       args[:title]       = title
       args[:description] = description
       
-      Net::Flickr.instance().request('flickr.photos.setMeta', args)
+      @connection.request('flickr.photos.setMeta', args)
       
       @info_xml = nil
     end

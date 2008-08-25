@@ -64,6 +64,10 @@ module Net; class Flickr
     # flickr.photos.setSafetyLevel
     # flickr.photos.setTags
     
+    def initialize(connection)
+      @connection = connection
+    end
+    
     # Add tags to a photo. Requires +write+ permissions.
     #
     # See http://www.flickr.com/services/api/flickr.photos.addTags.html
@@ -251,7 +255,7 @@ module Net; class Flickr
     # Note: Flickr doesn't allow parameterless searches, so be sure to specify
     # at least one search parameter.
     def search(args = {})
-      PhotoList.new('flickr.photos.search', args)
+      PhotoList.new(@connection, 'flickr.photos.search', args)
     end
     
     # Gets a list of the calling user's photos that have no tags. This method

@@ -36,10 +36,11 @@ require 'digest/md5'
 require 'net/http'
 require 'uri'
 require 'rubygems'
-require 'xml'
+require 'libxml'
 
-# Include teh adapters
+# Include teh support
 require 'flickr/support/connection'
+require 'flickr/support/xml_magic_libxml'
 
 # Net::Flickr's glorious errors
 require 'flickr/errors'
@@ -50,18 +51,17 @@ require 'flickr/test'
 # Net::Flickr includes
 # require 'flickr/auth'
 # require 'flickr/contacts'
-# require 'flickr/errors'
 # require 'flickr/geo'
 # require 'flickr/people'
 # require 'flickr/person'
-# require 'flickr/photo'
-# require 'flickr/photos'
+require 'flickr/photo'
+require 'flickr/photos'
 # require 'flickr/tag'
 
 # Net::Flickr List classes
-# require 'flickr/list'
+require 'flickr/list'
 # require 'flickr/contactlist'
-# require 'flickr/photolist'
+require 'flickr/photolist'
 
 # = Net::Flickr
 # 
@@ -90,18 +90,17 @@ module Net
   class Flickr
     VERSION = '1.0'.freeze
 
-    attr_reader :adapter
+    attr_reader :connection
 
     def initialize(key, secret=nil, token=nil)
-      @adapter = Net::Flickr::Connection.new(key, secret, token)
+      @connection = Net::Flickr::Connection.new(key, secret, token)
     end
     
-    def adapter=(thing)
+    def connection=(thing)
       unless thing.kind_of?(Net::Flickr::Connection)
-        raise AdapterInterfaceError,
-              'Adapters must be Net::Flickr::Connections'
+        raise 'Connections must be subclassed from Net::Flickr::Connections'
       end
-      @adapter = thing
+      @connection = thing
       self
     end
     
@@ -135,7 +134,7 @@ module Net
       unless Net::Flickr.const_defined?(klass)
         raise LoadError, "Net::Flickr::#{klass.to_s} not found."
       end
-      Net::Flickr.const_get(klass).new(@adapter)
+      Net::Flickr.const_get(klass).new(@connection)
     end
 
   end # Net::Flickr

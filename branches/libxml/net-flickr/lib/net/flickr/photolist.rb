@@ -43,8 +43,12 @@ module Net; class Flickr
     def update_list
       super
 
-      @response.search('photo').each do |photo_xml|
-        @items << Photo.new(photo_xml)
+      # @response.search('photo').each do |photo_xml|
+      #   @items << Photo.new(photo_xml)
+      # end
+      
+      @response.photos.photo.each do |photo|
+        @items << Photo.new(@connection, photo)
       end
     end
 
