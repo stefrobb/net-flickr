@@ -92,7 +92,7 @@ module Net
       # response from Flickr it throws an error.
       def parse(response_xml)
         begin
-          xml = XML::Parser.string(response_xml).parse
+          xml = LibXML::XML::Parser.string(response_xml).parse
         rescue => e
           raise InvalidResponse,
                 'Invalid Flickr API response: ' + e.message
@@ -104,7 +104,7 @@ module Net
         end
       
         if response.find_first('/rsp/@stat').value == 'ok'
-          return response
+          return CommonThread::XML::XmlMagicLibXML.new(response)
         elsif response.find_first('/rsp/@stat').value == 'fail'
           raise APIError, response.find_first('/rsp/err/@msg').value
         else

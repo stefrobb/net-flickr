@@ -31,13 +31,11 @@ FLICKR_SECRET = 'e49b207797eb11f1'
 
 @f = Net::Flickr.new(FLICKR_KEY, FLICKR_SECRET)
 
-@t = @f.test.echo({'ftwo' => 'kiwi',
-                 'foo'  => 'bar',
-                 'one'  => 'two'})
+# @t = @f.test.echo({'ftwo' => 'kiwi',
+#                  'foo'  => 'bar',
+#                  'one'  => 'two'})
 
-# p t.inspect
-
-# photos = f.photos.search('user_id' => N8_ID, 'text' => 'nudibranch')
+@photos = @f.photos.search('user_id' => N8_ID, 'text' => 'nudibranch')
 # p photos.size
 # p photos[0].title
 # p photos[0].description
