@@ -40,12 +40,14 @@ require 'libxml'
 
 # Include teh support
 require 'flickr/support/connection'
-require 'flickr/support/xml_magic_libxml'
+# require 'flickr/support/xml_magic_libxml'
+require 'flickr/support/libxml_hpricot'
 
 # Net::Flickr's glorious errors
 require 'flickr/errors'
 
 # Flickr endpoint classes
+require 'flickr/base'
 require 'flickr/test'
 
 # Net::Flickr includes
@@ -76,65 +78,53 @@ require 'flickr/photolist'
 # License::   New BSD License (http://opensource.org/licenses/bsd-license.php)
 # Website::   http://code.google.com/p/net-flickr/
 #
-# Usage
-# flickr = Net::Flickr.new(API_KEY, API_SECRET)
-# flickr.photos.search() # defaults to using LibXML as the xml interpreter
-#
-# or
-#
-# flickr = Net::Flickr.new(API_KEY, API_SECRET, TOKEN)
-# flickr.adapter = Net::Flickr::Adapters::Hpricot.new()
-# flickr.photos.search()
-
 module Net
   class Flickr
-    VERSION = '1.0'.freeze
+        
+    class << self
+      attr_reader :connection
 
-    attr_reader :connection
-
-    def initialize(key, secret=nil, token=nil)
-      @connection = Net::Flickr::Connection.new(key, secret, token)
+      def connection=(thing)
+        unless thing.kind_of?(Net::Flickr::Connection)
+          raise 'Connections must be a kind of Net::Flickr::Connection'
+        end
+        @connection = thing
+      end
+      
+      def request(method, args={})
+        @connection.request(method, args)
+      end
     end
     
-    def connection=(thing)
-      unless thing.kind_of?(Net::Flickr::Connection)
-        raise 'Connections must be subclassed from Net::Flickr::Connections'
-      end
-      @connection = thing
-      self
+    VERSION = '0.5'.freeze
+
+    def initialize(key, secret=nil, token=nil)
+      Net::Flickr.connection = Net::Flickr::Connection.new(key, secret, token)
     end
     
     # calls to the inner classes
     def auth
-      @auth ||= load_class(:Auth)
+      @auth ||= Net::Flickr::Auth.new(@connection)
     end
 
     def contacts
-      @contacts ||= load_class(:Contacts)
+      @contacts ||= Net::Flickr::Contacts.new(@connection)
     end
 
     def people
-      @people ||= load_class(:People)
+      @people ||= Net::Flickr::People.new(@connection)
     end
 
     def photos
-      @photos ||= load_class(:Photos)
+      @photos ||= Net::Flickr::Photos.new(@connection)
     end
 
     def photosets
-      @photosets ||= load_class(:Photosets)
+      @photosets ||= Net::Flickr::Photosets.new(@connection)
     end
 
     def test
-      @test ||= load_class(:Test)
-    end
-    
-    private
-    def load_class(klass)
-      unless Net::Flickr.const_defined?(klass)
-        raise LoadError, "Net::Flickr::#{klass.to_s} not found."
-      end
-      Net::Flickr.const_get(klass).new(@connection)
+      @test ||= Net::Flickr::Test.new(@connection)
     end
 
   end # Net::Flickr

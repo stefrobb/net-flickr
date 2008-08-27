@@ -32,13 +32,13 @@ module Net; class Flickr
   # 
   # Don't instantiate this class yourself. It's a base class extended by
   # +PhotoList+ and others.
-  class List
+  class List < Net::Flickr::Base
     include Enumerable
     
     attr_reader :page, :pages, :per_page, :total
     
     def initialize(connection, load_method, load_args)
-      @connection  = connection
+      super(connection)
       @load_method = load_method
       @load_args   = load_args
       
@@ -52,6 +52,7 @@ module Net; class Flickr
     def size
       @items.size
     end
+    alias :length :size
     
     def [](index)
       return @items[index]
@@ -114,12 +115,9 @@ module Net; class Flickr
       update_list
     end
     
-    alias prev previous
-    
     #--
     # Private Instance Methods
     #++
-    
     private
     
     def update_list

@@ -104,7 +104,7 @@ module Net
         end
       
         if response.find_first('/rsp/@stat').value == 'ok'
-          return CommonThread::XML::XmlMagicLibXML.new(response)
+          return response
         elsif response.find_first('/rsp/@stat').value == 'fail'
           raise APIError, response.find_first('/rsp/err/@msg').value
         else
