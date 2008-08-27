@@ -43,7 +43,7 @@ module Net; class Flickr
   #     puts photo.title
   #   end
   #
-  class Photos    
+  class Photos
     # Missing methods
     # flickr.photos.getAllContexts
     # flickr.photos.getContext
@@ -63,10 +63,6 @@ module Net; class Flickr
     # flickr.photos.setPerms
     # flickr.photos.setSafetyLevel
     # flickr.photos.setTags
-    
-    def initialize(connection)
-      @connection = connection
-    end
     
     # Add tags to a photo. Requires +write+ permissions.
     #
@@ -183,8 +179,8 @@ module Net; class Flickr
     end
     
     def get_info(photo_id)
-      resp = Net::Flickr.instance().request('flickr.photos.getInfo', 'photo_id' => photo_id)
-      Photo.new(resp.at('photo'))
+      response = Net::Flickr.request('flickr.photos.getInfo', {'photo_id' => photo_id})
+      Photo.new(response.find_first('photo'))
     end
     
     # Gets a list of the calling user's geotagged photos. This method requires

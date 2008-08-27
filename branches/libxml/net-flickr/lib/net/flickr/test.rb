@@ -28,24 +28,19 @@
 
 module Net
   class Flickr
-    class Test
-      
-      attr_accessor :connection
-      
-      def initialize(connection)
-        @connection = connection
-      end
+    class Test < Net::Flickr::Base
 
       def echo(args={})
-        resp = connection.request('flickr.test.echo', args)
-        # args.keys.each do |key|
-        #   instance_variable_set "@#{key}", resp[key]
-        # end
-        # self
+        resp = @connection.request('flickr.test.echo', args)
+        dict = {}
+        resp.each_element do |x|
+          dict[x.name.to_sym] = x.content
+        end
+        dict
       end
 
       def null(args={})
-        connection.request('flickr.test.null', args)
+        @connection.request('flickr.test.null', args)
       end
       
     end 
