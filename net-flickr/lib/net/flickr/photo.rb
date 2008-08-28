@@ -34,9 +34,31 @@
 
 module Net
   class Flickr
-
-    # A Flickr photo.
     class Photo
+      
+      def self.attrs_req_get_info(*args)
+        args.each do |attribute|
+          define_method(attribute) do
+            get_info
+            instance_variable_get("@#{attribute}")
+          end
+        end
+      end
+      
+      def self.attrs_req_get_info?(*args)
+        args.each do |attribute|
+          define_method("#{attribute}?") do
+            get_info
+            instance_variable_get("@#{attribute}")
+          end
+        end
+      end
+      
+      attr_reader :id
+      attrs_req_get_info :secret, :server, :farm, :license, :rotation, :originalsecret, :originalformat,
+                         :title, :description, :comment_count
+                         
+      attrs_req_get_info? :is_family, :is_favorite, :is_public, :is_friend
       
       SIZE_SUFFIX = {
         :square   => 's',
@@ -58,23 +80,6 @@ module Net
         else
           raise "Cannot initialize Net::Flickr::Photo.new because the 'photo' paramter was a: #{photo.class}."
         end
-      end
-      
-      def method_missing(method, args={})
-        get_info
-        var = "@" + method.to_s
-        if instance_variable_defined?(var)
-          return instance_variable_get(var)
-        end
-      end
-      
-      ###
-      # Getters
-      ###
-      
-      # id has to be set explicitly to override Ruby's native id method
-      def id
-        @id
       end
       
       ###
@@ -99,29 +104,6 @@ module Net
       def has_comments?
         get_info
         @comment_count > 0
-      end
-      
-      # Whether or not this photo is visible to family.
-      def is_family?
-        get_info
-        @isfamily
-      end
-      
-      def is_favorite?
-        get_info
-        @isfavorite
-      end
-
-      # Whether or not this photo is visible to friends.
-      def is_friend?
-        get_info
-        @isfriend
-      end
-      
-      # Whether or not this photo is visible to the general public.
-      def is_public?
-        get_info
-        @ispublic
       end
 
       ###
@@ -213,9 +195,9 @@ module Net
           @server    = xml[:server]
           @farm      = xml[:farm]
           @title     = xml[:title]
-          @ispublic  = xml[:ispublic] == '1'
-          @isfriend  = xml[:isfriend] == '1'
-          @isfamily  = xml[:isfamily] == '1'
+          @is_public  = xml[:ispublic] == '1'
+          @is_friend  = xml[:isfriend] == '1'
+          @is_family  = xml[:isfamily] == '1'
         
         # This is a context XML chunk. It doesn't include visibility info.
         elsif xml[:url] && xml[:thumb]
@@ -235,11 +217,11 @@ module Net
           @farm           = xml[:farm]
           @secret         = xml[:secret]
           @server         = xml[:server]
-          @isfavorite     = xml[:isfavorite]
           @license        = xml[:license]
           @rotation       = xml[:rotation]
           @originalsecret = xml[:originalsecret]
           @originalformat = xml[:originalformat]
+          @is_favorite    = xml[:isfavorite] == '1'
 
           # major attributes
           @title = xml.find_first('title').content.to_s
@@ -258,9 +240,9 @@ module Net
           # visibility
           visibility = xml.find_first('visibility')
           if visibility
-            @isfamily = visibility[:isfamily] == '1'
-            @isfriend = visibility[:isfriend] == '1'
-            @ispublic = visibility[:ispublic] == '1'
+            @is_family = visibility[:isfamily] == '1'
+            @is_friend = visibility[:isfriend] == '1'
+            @is_public = visibility[:ispublic] == '1'
           end
 
           # dates
@@ -282,8 +264,8 @@ module Net
           # editability
           editability = xml.find_first('editability')
           if editability
-            @cancomment = editability[:cancomment] == '1'
-            @canaddmeta = editability[:canaddmeta] == '1'
+            @can_comment = editability[:cancomment] == '1'
+            @can_add_meta = editability[:canaddmeta] == '1'
           end
         end
         

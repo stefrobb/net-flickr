@@ -116,7 +116,7 @@ module Net
     end
 
     def photos
-      @photos ||= Net::Flickr::Photos.new(@connection)
+      @photos ||= Net::Flickr::Photos.new
     end
 
     def photosets
