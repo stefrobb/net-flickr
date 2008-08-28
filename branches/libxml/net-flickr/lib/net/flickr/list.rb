@@ -32,7 +32,7 @@ module Net; class Flickr
   # 
   # Don't instantiate this class yourself. It's a base class extended by
   # +PhotoList+ and others.
-  class List < Net::Flickr::Base
+  class List
     include Enumerable
     
     attr_reader :page, :pages, :per_page, :total

@@ -34,5 +34,5 @@ FLICKR_SECRET = 'e49b207797eb11f1'
 # p @photos[0].description
 
 # photo test
-# @photo = @f.photos.get_info(N8_PHOTO)
+@photo = @f.photos.get_info(N8_PHOTO)
 # p @photo.title

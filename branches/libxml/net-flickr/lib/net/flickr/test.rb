@@ -28,7 +28,7 @@
 
 module Net
   class Flickr
-    class Test < Net::Flickr::Base
+    class Test
 
       def echo(args={})
         resp = @connection.request('flickr.test.echo', args)
