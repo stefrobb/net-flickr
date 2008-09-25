@@ -25,13 +25,12 @@ module Net
       
         http.start do |http|
           if block_given?
-            http.request(request) { |response| yield response }
+            http.request(request) {|response| yield response}
           else
             response = http.request(request)
       
             # Raise a Net::HTTP error if the HTTP request failed.
-            unless response.is_a?(Net::HTTPSuccess) || 
-                response.is_a?(Net::HTTPRedirection)
+            unless response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPRedirection)
               response.error!
             end
 
@@ -46,14 +45,12 @@ module Net
       # flickr.auth.url_desktop
       def sign_url(url)
         if @secret.nil?
-          raise AuthorizationError,
-                'An API secret key is required to sign a url.'      
+          raise AuthorizationError, 'An API secret key is required to sign a url.'      
         end
 
         uri = URI.parse(url)
         params = uri.query.split('&')
-        params << 'api_sig=' + Digest::MD5.hexdigest(@secret +
-            params.sort.join('').gsub('=', ''))
+        params << 'api_sig=' + Digest::MD5.hexdigest(@secret + params.sort.join('').gsub('=', ''))
         uri.query = params.join('&')
         uri.to_s
       end
@@ -94,13 +91,11 @@ module Net
         begin
           xml = LibXML::XML::Parser.string(response_xml).parse
         rescue => e
-          raise InvalidResponse,
-                'Invalid Flickr API response: ' + e.message
+          raise InvalidResponse, 'Invalid Flickr API response: ' + e.message
         end
       
         unless response = xml.find_first('/rsp')
-          raise InvalidResponse,
-                'Invalid Flickr API response: missing rsp tag'
+          raise InvalidResponse, 'Invalid Flickr API response: missing rsp tag'
         end
       
         if response.find_first('/rsp/@stat').value == 'ok'
@@ -108,8 +103,7 @@ module Net
         elsif response.find_first('/rsp/@stat').value == 'fail'
           raise APIError, response.find_first('/rsp/err/@msg').value
         else
-          raise InvalidResponse,
-                'Invalid Flickr API response'
+          raise InvalidResponse, 'Invalid Flickr API response'
         end
       end
 

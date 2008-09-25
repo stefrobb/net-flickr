@@ -1,36 +1,12 @@
 require (File.join(File.dirname(__FILE__), '../spec_helper.rb'))
 
 describe Net::Flickr::Auth do
-  
-  # provides the methods unsigned_flickr and signed_flickr
   include FlickrGeneratorHelper
   
   before do
-    @flickr = unsigned_flickr
+    # @flickr = unsigned_flickr
   end
   
-  it "should be able to properly sign a url to call flickr.auth.getFrob" do
-    uri = URI.parse(Net::Flickr::AUTH_URL)
-    
-    params = {'method'  => 'flickr.auth.getFrob',
-              'api_key' => FLICKR_KEY,
-              'perms'   => 'read'}
-
-    paramlist = ''
-    params.keys.sort.each { |key| 
-      paramlist << key << params[key]
-    }
-    
-    unsigned_query = params.to_a.map{|pair| pair[0].to_s + '=' + pair[1].to_s}.join('&')
-        
-    params['api_sig'] = Digest::MD5.hexdigest(FLICKR_SECRET + paramlist)
-
-    uri.query = unsigned_query
-    
-    signed_uri = URI.parse(signed_flickr.sign_url(uri.to_s))
-    api_sig = Hash[*signed_uri.query.split('&').collect{|v| v.split('=')}.flatten]['api_sig']
-    api_sig.should == params['api_sig']
-  end
   
   it "should call get_frob and fail when no secret key is provided" do
     lambda {@flickr.auth.get_frob}.should raise_error(Net::Flickr::APIError)
@@ -60,7 +36,7 @@ describe Net::Flickr::Auth do
   end
   
   after do
-    @flickr = nil
+    # @flickr = nil
   end
 
 end

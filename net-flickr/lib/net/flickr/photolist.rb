@@ -48,7 +48,7 @@ module Net; class Flickr
       # end
       
       @response.search('photos/photo').each do |photo|
-        @items << Photo.new(@connection, photo)
+        @items << Photo.new(photo)
       end
     end
 

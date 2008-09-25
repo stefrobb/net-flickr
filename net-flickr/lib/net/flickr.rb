@@ -51,7 +51,7 @@ require 'flickr/base'
 require 'flickr/test'
 
 # Net::Flickr includes
-# require 'flickr/auth'
+require 'flickr/auth'
 # require 'flickr/contacts'
 # require 'flickr/geo'
 # require 'flickr/people'
@@ -86,7 +86,7 @@ module Net
 
       def connection=(thing)
         unless thing.kind_of?(Net::Flickr::Connection)
-          raise 'Connections must be a kind of Net::Flickr::Connection'
+          raise 'A connection must be a kind of Net::Flickr::Connection'
         end
         @connection = thing
       end
@@ -104,27 +104,27 @@ module Net
     
     # calls to the inner classes
     def auth
-      @auth ||= Net::Flickr::Auth.new(@connection)
+      @auth ||= Net::Flickr::Auth
     end
 
     def contacts
-      @contacts ||= Net::Flickr::Contacts.new(@connection)
+      @contacts ||= Net::Flickr::Contacts
     end
 
     def people
-      @people ||= Net::Flickr::People.new(@connection)
+      @people ||= Net::Flickr::People
     end
 
     def photos
-      @photos ||= Net::Flickr::Photos.new
+      @photos ||= Net::Flickr::Photos
     end
 
     def photosets
-      @photosets ||= Net::Flickr::Photosets.new(@connection)
+      @photosets ||= Net::Flickr::Photosets
     end
 
     def test
-      @test ||= Net::Flickr::Test.new(@connection)
+      @test ||= Net::Flickr::Test
     end
 
   end # Net::Flickr
