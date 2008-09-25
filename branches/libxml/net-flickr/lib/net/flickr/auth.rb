@@ -72,21 +72,21 @@ module Net; class Flickr
     # authentication _token_. If the _token_ is not valid, an APIError will be
     # raised.
     def check_token(token = @token)
-      update_auth(Net::Flickr.instance().request('flickr.auth.checkToken',
+      update_auth(Net::Flickr.request('flickr.auth.checkToken',
           'auth_token' => token))
       return true
     end
     
     # Gets the full authentication token for the specified _mini_token_.
     def full_token(mini_token)
-      update_auth(Net::Flickr.instance().request('flickr.auth.getFullToken',
+      update_auth(Net::Flickr.request('flickr.auth.getFullToken',
           'mini_token' => mini_token))
       return @token
     end
     
     # Gets a frob to be used during authentication.
     def get_frob
-      response = Net::Flickr.instance().request('flickr.auth.getFrob').at('frob')
+      response = Net::Flickr.request('flickr.auth.getFrob').at('frob')
       return @frob = response.inner_text
     end
   
@@ -94,7 +94,7 @@ module Net; class Flickr
     # returns an auth token. If the _frob_ is not valid, an APIError will be
     # raised.
     def get_token(frob = @frob)
-      update_auth(Net::Flickr.instance().request('flickr.auth.getToken', 'frob' => frob))
+      update_auth(Net::Flickr.request('flickr.auth.getToken', 'frob' => frob))
       return @token
     end
     
@@ -104,9 +104,9 @@ module Net; class Flickr
     def url_desktop(perms = :read)
       get_frob if @frob.nil?
       url = Flickr::AUTH_URL +
-          "?api_key=#{Net::Flickr.instance().api_key}&perms=#{perms}&frob=#{@frob}"
+          "?api_key=#{Net::Flickr.api_key}&perms=#{perms}&frob=#{@frob}"
       
-      return Net::Flickr.instance().sign_url(url)
+      return Net::Flickr.sign_url(url)
     end
     
     # Gets a signed URL that can be used by a web application to show the user a
@@ -114,8 +114,8 @@ module Net; class Flickr
     # authorized your application, you can call get_token with the frob provided
     # by Flickr to authenticate.
     def url_webapp(perms = :read)
-      return Net::Flickr.instance().sign_url(Flickr::AUTH_URL +
-          "?api_key=#{Net::Flickr.instance().api_key}&perms=#{perms}")
+      return Net::Flickr.sign_url(Flickr::AUTH_URL +
+          "?api_key=#{Net::Flickr.api_key}&perms=#{perms}")
     end
     
     #--
