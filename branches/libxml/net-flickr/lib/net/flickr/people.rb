@@ -29,42 +29,43 @@
 module Net; class Flickr
 
   class People
-  
-    #--
-    # Public Instance Methods
-    #++
+    class << self
+      #--
+      # Public Instance Methods
+      #++
     
-    # Looks up a Flickr user based on their email address.
-    # 
-    # See http://flickr.com/services/api/flickr.people.findByEmail.html for
-    # details.
-    def find_by_email(email, args = {})
-      args['find_email'] = email
-      response = Net::Flickr.instance().request('flickr.people.findByEmail', args)
+      # Looks up a Flickr user based on their email address.
+      # 
+      # See http://flickr.com/services/api/flickr.people.findByEmail.html for
+      # details.
+      def find_by_email(email, args = {})
+        args['find_email'] = email
+        response = Net::Flickr.request('flickr.people.findByEmail', args)
 
-      Person.new(response.at('user'))
-    end
+        Person.new(response.at('user'))
+      end
     
-    # Looks up a Flickr user based on their username.
-    # 
-    # See http://flickr.com/services/api/flickr.people.findByUsername.html for
-    # details.
-    def find_by_username(username, args = {})
-      args['username'] = username
-      response = Net::Flickr.instance().request('flickr.people.findByUsername', args)
+      # Looks up a Flickr user based on their username.
+      # 
+      # See http://flickr.com/services/api/flickr.people.findByUsername.html for
+      # details.
+      def find_by_username(username, args = {})
+        args['username'] = username
+        response = Net::Flickr.request('flickr.people.findByUsername', args)
       
-      Person.new(response.at('user'))
-    end
+        Person.new(response.at('user'))
+      end
     
-    # Gets a list of public photos for the specified _user_id_.
-    # 
-    # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
-    # details.
-    def get_public_photos(user_id, args = {})
-      args['user_id'] = user_id
-      PhotoList.new('flickr.people.getPublicPhotos', args)
+      # Gets a list of public photos for the specified _user_id_.
+      # 
+      # See http://flickr.com/services/api/flickr.people.getPublicPhotos.html for
+      # details.
+      def get_public_photos(user_id, args = {})
+        args['user_id'] = user_id
+        PhotoList.new('flickr.people.getPublicPhotos', args)
+      end
+    
     end
-  
   end
 
 end; end

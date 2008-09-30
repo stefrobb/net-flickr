@@ -26,18 +26,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #++
 
-module Net; class Flickr
-
-  class Contacts
+module Net
+  class Flickr
     
-    def get_list(args = {})
-      ContactList.new('flickr.contacts.getList', args)
+    class Contacts
+      class << self
+        def get_list(args = {})
+          ContactList.new('flickr.contacts.getList', args)
+        end
+    
+        def get_public_list(args = {})
+          ContactList.new('flickr.contacts.getPublicList', args)
+        end
+      end
     end
     
-    def get_public_list(args = {})
-      ContactList.new('flickr.contacts.getPublicList', args)
-    end
-
   end
-  
-end; end;
+end
