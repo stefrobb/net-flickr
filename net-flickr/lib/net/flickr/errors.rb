@@ -27,7 +27,7 @@
 #++
 
 module Net
-  class Flickr  
+  class Flickr
     class APIError < StandardError; end
     class InvalidResponse < StandardError; end
     class AuthorizationError < StandardError; end

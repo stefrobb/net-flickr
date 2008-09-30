@@ -26,116 +26,113 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #++
 
-module Net; class Flickr
+module Net
+  class Flickr
 
-  # Implements the Flickr authentication API. Please see
-  # http://flickr.com/services/api/auth.spec.html for details on how to use this
-  # API in your application.
-  # 
-  # Don't instantiate this class yourself. Instead, create an instance of the
-  # +Flickr+ class and then user <tt>Flickr.auth</tt> to access this class,
-  # like so:
-  # 
-  #   require 'net/flickr'
-  #   
-  #   flickr = Net::Flickr.new('524266cbd9d3c2xa2679fee8b337fip2',
-  #       '835hae5d6j0sd47a')
-  #   
-  #   puts flickr.auth.url_desktop
-  # 
-  class Auth
-    PERM_NONE   = :none
-    PERM_READ   = :read
-    PERM_WRITE  = :write
-    PERM_DELETE = :delete
+    # Implements the Flickr authentication API. Please see
+    # http://flickr.com/services/api/auth.spec.html for details on how to use this
+    # API in your application.
+    # 
+    # Don't instantiate this class yourself. Instead, create an instance of the
+    # +Flickr+ class and then user <tt>Flickr.auth</tt> to access this class,
+    # like so:
+    # 
+    #   require 'net/flickr'
+    #   
+    #   flickr = Net::Flickr.new('524266cbd9d3c2xa2679fee8b337fip2',
+    #       '835hae5d6j0sd47a')
+    #   
+    #   puts flickr.auth.url_desktop
+    # 
+    class Auth
+      class << self
+        PERM_NONE   = :none
+        PERM_READ   = :read
+        PERM_WRITE  = :write
+        PERM_DELETE = :delete
   
-    attr_reader :frob, :perms, :user_id, :user_name, :user_fullname
+        attr_reader :frob, :perms, :user_id, :user_name, :user_fullname
     
-    # allows the token to be set if its already been fetched and stored
-    # in a database or flat file
-    attr_accessor :token
+        # allows the token to be set if its already been fetched and stored
+        # in a database or flat file
+        attr_accessor :token
     
-    def initialize
-      @frob          = nil
-      @perms         = PERM_NONE
-      @token         = nil
-      @user_id       = nil
-      @user_name     = nil
-      @user_fullname = nil
-    end
+        def initialize
+          @frob          = nil
+          @perms         = PERM_NONE
+          @token         = nil
+          @user_id       = nil
+          @user_name     = nil
+          @user_fullname = nil
+        end
     
-    #--
-    # Public Instance Methods
-    #++
+        #--
+        # Public Instance Methods
+        #++
     
-    # Updates this Auth object with the credentials attached to the specified
-    # authentication _token_. If the _token_ is not valid, an APIError will be
-    # raised.
-    def check_token(token = @token)
-      update_auth(Net::Flickr.request('flickr.auth.checkToken',
-          'auth_token' => token))
-      return true
-    end
+        # Updates this Auth object with the credentials attached to the specified
+        # authentication _token_. If the _token_ is not valid, an APIError will be
+        # raised.
+        def check_token(token = @token)
+          update_auth(Net::Flickr.request('flickr.auth.checkToken', 'auth_token' => token))
+          true
+        end
     
-    # Gets the full authentication token for the specified _mini_token_.
-    def full_token(mini_token)
-      update_auth(Net::Flickr.request('flickr.auth.getFullToken',
-          'mini_token' => mini_token))
-      return @token
-    end
+        # Gets the full authentication token for the specified _mini_token_.
+        def full_token(mini_token)
+          update_auth(Net::Flickr.request('flickr.auth.getFullToken', 'mini_token' => mini_token))
+          @token
+        end
     
-    # Gets a frob to be used during authentication.
-    def get_frob
-      response = Net::Flickr.request('flickr.auth.getFrob').at('frob')
-      return @frob = response.inner_text
-    end
+        # Gets a frob to be used during authentication.
+        def get_frob
+          @frob = Net::Flickr.request('flickr.auth.getFrob').at('frob').content
+        end
   
-    # Updates this Auth object with the credentials for the specified _frob_ and
-    # returns an auth token. If the _frob_ is not valid, an APIError will be
-    # raised.
-    def get_token(frob = @frob)
-      update_auth(Net::Flickr.request('flickr.auth.getToken', 'frob' => frob))
-      return @token
-    end
+        # Updates this Auth object with the credentials for the specified _frob_ and
+        # returns an auth token. If the _frob_ is not valid, an APIError will be
+        # raised.
+        def get_token(frob = @frob)
+          update_auth(Net::Flickr.request('flickr.auth.getToken', 'frob' => frob))
+          @token
+        end
     
-    # Gets a signed URL that can by used by a desktop application to show the
-    # user a Flickr authentication screen. Once the user has visited this URL
-    # and authorized your application, you can call get_token to authenticate.
-    def url_desktop(perms = :read)
-      get_frob if @frob.nil?
-      url = Flickr::AUTH_URL +
-          "?api_key=#{Net::Flickr.api_key}&perms=#{perms}&frob=#{@frob}"
+        # Gets a signed URL that can by used by a desktop application to show the
+        # user a Flickr authentication screen. Once the user has visited this URL
+        # and authorized your application, you can call get_token to authenticate.
+        def url_desktop(perms = :read)
+          get_frob if @frob.nil?
+          Net::Flickr.connection.sign_url(Net::Flickr::Connection::AUTH_URL + "?api_key=#{Net::Flickr.connection.key}&perms=#{perms}&frob=#{@frob}")
+        end
+    
+        # Gets a signed URL that can be used by a web application to show the user a
+        # Flickr authentication screen. Once the user has visited this URL and
+        # authorized your application, you can call get_token with the frob provided
+        # by Flickr to authenticate.
+        def url_webapp(perms = :read)
+          Net::Flickr.connection.sign_url(Net::Flickr::Connection::AUTH_URL + "?api_key=#{Net::Flickr.connection.key}&perms=#{perms}")
+        end
+    
+        #--
+        # Private Instance Methods
+        #++
+    
+        private
+    
+        # Updates this Auth object with the credentials in the specified XML
+        # _response_.
+        def update_auth(response)
+          auth = response.at('auth')
+          user = auth.at('user')
       
-      return Net::Flickr.sign_url(url)
-    end
-    
-    # Gets a signed URL that can be used by a web application to show the user a
-    # Flickr authentication screen. Once the user has visited this URL and
-    # authorized your application, you can call get_token with the frob provided
-    # by Flickr to authenticate.
-    def url_webapp(perms = :read)
-      return Net::Flickr.sign_url(Flickr::AUTH_URL +
-          "?api_key=#{Net::Flickr.api_key}&perms=#{perms}")
-    end
-    
-    #--
-    # Private Instance Methods
-    #++
-    
-    private
-    
-    # Updates this Auth object with the credentials in the specified XML
-    # _response_.
-    def update_auth(response)
-      auth = response.at('auth')
-      user = auth.at('user')
+          @perms         = auth.at('perms').inner_text.to_sym
+          @token         = auth.at('token').inner_text
+          @user_id       = user['nsid']
+          @user_name     = user['username']
+          @user_fullname = user['fullname']
+        end
       
-      @perms         = auth.at('perms').inner_text.to_sym
-      @token         = auth.at('token').inner_text
-      @user_id       = user['nsid']
-      @user_name     = user['username']
-      @user_fullname = user['fullname']
+      end
     end
   end
-
-end; end
+end
