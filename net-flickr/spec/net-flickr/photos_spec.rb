@@ -69,7 +69,7 @@ describe Net::Flickr::Photos do
   it "should be able to provide exif data on a photo" do
     lambda {
       exif = signed_flickr.photos.get_exif(PHOTO_ID)
-      exif.should be_instance_of(Hpricot::Elem)
+      exif.should be_instance_of(LibXML::XML::XPath::Object)
     }.should_not raise_error
   end
   

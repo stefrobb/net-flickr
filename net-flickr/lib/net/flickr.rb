@@ -39,31 +39,27 @@ require 'rubygems'
 require 'libxml'
 
 # Include teh support
+require 'flickr/support/errors'
 require 'flickr/support/connection'
-# require 'flickr/support/xml_magic_libxml'
 require 'flickr/support/libxml_hpricot'
 
-# Net::Flickr's glorious errors
-require 'flickr/errors'
-
-# Flickr endpoint classes
-require 'flickr/base'
-require 'flickr/test'
-
 # Net::Flickr includes
-require 'flickr/auth'
-# require 'flickr/contacts'
-# require 'flickr/geo'
-# require 'flickr/people'
-# require 'flickr/person'
+require 'flickr/endpoints/auth'
+require 'flickr/endpoints/contacts'
+require 'flickr/endpoints/people'
+require 'flickr/endpoints/photos'
+require 'flickr/endpoints/tags'
+require 'flickr/endpoints/test'
+
+# Convenience classes
+require 'flickr/person'
 require 'flickr/photo'
-require 'flickr/photos'
-# require 'flickr/tag'
+require 'flickr/tag'
 
 # Net::Flickr List classes
-require 'flickr/list'
-# require 'flickr/contactlist'
-require 'flickr/photolist'
+require 'flickr/lists/list'
+require 'flickr/lists/contactlist'
+require 'flickr/lists/photolist'
 
 # = Net::Flickr
 # 
@@ -104,28 +100,28 @@ module Net
     
     # calls to the inner classes
     def auth
-      @auth ||= Net::Flickr::Auth
+      Net::Flickr::Auth
     end
 
     def contacts
-      @contacts ||= Net::Flickr::Contacts
+      Net::Flickr::Contacts
     end
 
     def people
-      @people ||= Net::Flickr::People
+      Net::Flickr::People
     end
 
     def photos
-      @photos ||= Net::Flickr::Photos
+      Net::Flickr::Photos
     end
 
     def photosets
-      @photosets ||= Net::Flickr::Photosets
+      Net::Flickr::Photosets
     end
 
     def test
-      @test ||= Net::Flickr::Test
+      Net::Flickr::Test
     end
 
-  end # Net::Flickr
-end # Net
+  end
+end
