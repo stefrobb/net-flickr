@@ -39,7 +39,7 @@ module Net; class Flickr
       @id          = tag_xml['id']
       @author      = tag_xml['author']
       @raw         = tag_xml['raw']
-      @name        = tag_xml.inner_text
+      @name        = tag_xml.content
       @machine_tag = tag_xml['machine_tag'] == '1'
     end
     

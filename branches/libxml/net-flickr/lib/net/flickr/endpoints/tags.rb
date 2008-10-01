@@ -28,19 +28,12 @@
 
 module Net
   class Flickr
-    class Test
+    class Tags
 
-      def echo(args={})
-        resp = @connection.request('flickr.test.echo', args)
-        dict = {}
-        resp.each_element do |x|
-          dict[x.name.to_sym] = x.content
+      class << self
+        def get_list_photo(photo_id)
+          Net::Flickr.request('flickr.tags.getListPhoto', {:photo_id => photo_id})
         end
-        dict
-      end
-
-      def null(args={})
-        @connection.request('flickr.test.null', args)
       end
       
     end 

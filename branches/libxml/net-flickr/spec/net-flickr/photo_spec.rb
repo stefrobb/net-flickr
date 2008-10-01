@@ -47,8 +47,8 @@ describe Net::Flickr::Photo do
   it "should be able to get geolocation information for a photo" do
     signed_flickr
     p = Net::Flickr::Photo.new(PHOTO_W_GEO)
-    p.geo.latitude.should  == 36.266068
-    p.geo.longitude.should == -117.188184
-    p.geo.accuracy.should  == 16
+    p.latitude.should  == 36.266068
+    p.longitude.should == -117.188184
+    p.accuracy.should  == 16
   end
 end

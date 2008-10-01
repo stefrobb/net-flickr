@@ -71,9 +71,7 @@ module Net
         # See http://www.flickr.com/services/api/flickr.photos.addTags.html
         # for details
         def add_tags(photo_id, tags)
-          Net::Flickr.instance().request('flickr.photos.addTags',
-                                         { 'photo_id' => photo_id,
-                                           'tags'     => tags })
+          Net::Flickr.request('flickr.photos.addTags', {:photo_id => photo_id, :tags => tags})
         end
     
         # Deletes the specified photo from Flickr. This method requires
@@ -81,8 +79,7 @@ module Net
         # 
         # See http://flickr.com/services/api/flickr.photos.delete.html for details.
         def delete(photo_id)
-          Net::Flickr.instance().request('flickr.photos.delete',
-                                         'photo_id' => photo_id)
+          Net::Flickr.request('flickr.photos.delete', {:photo_id => photo_id})
         end
     
         # Gets a list of all the sets and pools (context) a photo is found in
@@ -90,8 +87,7 @@ module Net
         # See http://www.flickr.com/services/api/flickr.photos.getAllContexts.html
         # for more details.
         def get_all_contexts(photo_id)
-          Net::Flickr.instance().request('flickr.photos.getAllContexts',
-                                         'photo_id' => photo_id)
+          Net::Flickr.request('flickr.photos.getAllContexts', {:photo_id => photo_id})
         end
 
         # Gets a list of recent photos from the calling user's contacts. This method
@@ -100,7 +96,7 @@ module Net
         # See http://flickr.com/services/api/flickr.photos.getContactsPhotos.html
         # for details.
         def get_contacts_photos(args = {})
-          response = Net::Flickr.instance().request('flickr.photos.getContactsPhotos', args)
+          response = Net::Flickr.request('flickr.photos.getContactsPhotos', args)
           photos = []
       
           response.search('photos/photo').each do |photo_xml|
@@ -118,7 +114,7 @@ module Net
         # for details.
         def get_contacts_public_photos(user_id, args = {})
           args['user_id'] = user_id
-          response = Net::Flickr.instance().request('flickr.photos.getContactsPublicPhotos', args)
+          response = Net::Flickr.request('flickr.photos.getContactsPublicPhotos', args)
           photos = []
       
           response.search('photos/photo').each do |photo_xml|
@@ -135,7 +131,7 @@ module Net
         # See http://www.flickr.com/services/api/flickr.photos.getContext.html
         # for details.
         def get_context(photo_id)
-          response = Net::Flickr.instance().request('flickr.photos.getContext',
+          response = Net::Flickr.request('flickr.photos.getContext',
                                                     'photo_id' => photo_id)
           previous_photo = response.at('prevphoto')
           next_photo     = response.at('nextphoto')
@@ -161,7 +157,7 @@ module Net
         # See http://flickr.com/services/api/flickr.photos.getCounts.html for
         # details.
         def get_counts(args = {})
-          Net::Flickr.instance().request('flickr.photos.getCounts', args).at('photocounts')
+          Net::Flickr.request('flickr.photos.getCounts', args).at('photocounts')
         end
     
         alias :counts :get_counts
@@ -171,11 +167,11 @@ module Net
         #
         # See http://www.flickr.com/services/api/flickr.photos.getExif.html
         # for details
-        def get_exif(photo_id, secret = nil)
+        def get_exif(photo_id, secret=nil)
           args = {}
           args['photo_id'] = photo_id
           args['secret'] = secret unless secret.nil?
-          resp = Net::Flickr.instance().request('flickr.photos.getExif', args).at('photo')
+          resp = Net::Flickr.request('flickr.photos.getExif', args).find('photo/exif')
           return nil if resp.empty?
           resp
         end

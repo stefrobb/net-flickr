@@ -55,8 +55,9 @@ module Net
       end
       
       attr_reader :id
-      attrs_req_get_info :secret, :server, :farm, :license, :rotation, :originalsecret, :originalformat,
-                         :title, :description, :comment_count
+      attrs_req_get_info :secret, :server, :farm, :license, :rotation, :originalsecret,
+                         :originalformat, :title, :description, :comment_count, :tags,
+                         :longitude, :latitude, :accuracy
                          
       attrs_req_get_info? :is_family, :is_favorite, :is_public, :is_friend
       
@@ -70,6 +71,8 @@ module Net
       }
 
       def initialize(photo)
+        raise AuthorizationError, 'Net::Flickr::Photo requires a Net::Flickr::Connection object to connect to the flickr API' if Net::Flickr.connection.nil?
+        
         @xml = nil
         @context_xml = nil
         
@@ -173,9 +176,7 @@ module Net
       # Gets detailed information for this photo.
       def get_info(force=false)
         return unless (@xml.nil? || force)
-        response = Net::Flickr.request('flickr.photos.getInfo',
-                                       {:photo_id => @id, 
-                                        :secret   => @secret})
+        response = Net::Flickr.request('flickr.photos.getInfo', {:photo_id => @id, :secret => @secret})
         @xml = response.find_first('photo')
         parse(@xml)
       end
@@ -189,12 +190,12 @@ module Net
       def parse(xml)
         # Photo info comes in three formats
         if xml[:owner] && xml[:ispublic]
-          @id        = xml[:id]
-          @owner     = xml[:owner]
-          @secret    = xml[:secret]
-          @server    = xml[:server]
-          @farm      = xml[:farm]
-          @title     = xml[:title]
+          @id         = xml[:id]
+          @owner      = xml[:owner]
+          @secret     = xml[:secret]
+          @server     = xml[:server]
+          @farm       = xml[:farm]
+          @title      = xml[:title]
           @is_public  = xml[:ispublic] == '1'
           @is_friend  = xml[:isfriend] == '1'
           @is_family  = xml[:isfamily] == '1'
@@ -266,6 +267,20 @@ module Net
           if editability
             @can_comment = editability[:cancomment] == '1'
             @can_add_meta = editability[:canaddmeta] == '1'
+          end
+          
+          @tags = {}
+          tags = xml.find('tags/tag')
+          if tags.size > 0
+            tags.each {|tag| @tags[tag.content] = Net::Flickr::Tag.new(tag)}
+          end
+          tags = nil # REQUIRED! SEE: http://libxml.rubyforge.org/rdoc/classes/LibXML/XML/Document.html#M000354
+          
+          location = xml.find_first('location')
+          if location
+            @longitude = location[:longitude].to_f
+            @latitude  = location[:latitude].to_f
+            @accuracy  = location[:accuracy].to_f
           end
         end
         
